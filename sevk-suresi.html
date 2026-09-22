@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sevk Süresi Hesaplama (Sipariş Bazlı)</title>
+    <!-- SheetJS Kütüphanesi -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #16a34a;
+            --warning: #ca8a04;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        header {
+            background: var(--card-bg);
+            padding: 24px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        h1 { margin: 0; font-size: 22px; color: var(--primary); }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .upload-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f1f5f9;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 2px dashed #cbd5e1;
+        }
+        input[type="file"] { font-size: 13px; cursor: pointer; }
+        
+        .info-btn {
+            background-color: #0284c7;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .info-btn:hover { background-color: #0369a1; }
+
+        .summary-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            padding: 30px;
+            margin-bottom: 24px;
+            border-top: 6px solid var(--primary);
+            display: none;
+        }
+        .summary-card.active { display: block; }
+        
+        .summary-header {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        
+        .metric-box {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        .metric-box span {
+            display: block;
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .metric-box strong {
+            font-size: 28px;
+            color: var(--text);
+        }
+        .metric-box.success strong { color: var(--success); }
+        .metric-box.warning strong { color: var(--warning); }
+        .metric-box.primary strong { color: var(--primary); }
+
+        .welcome-box {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 50px 30px;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            color: #64748b;
+            font-size: 16px;
+        }
+
+        /* Akordeon Detay Alanı Stilleri */
+        .details-container {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            margin-bottom: 24px;
+            display: none;
+            overflow: hidden;
+        }
+        .details-container.active { display: block; }
+        
+        .accordion-header {
+            background: #f1f5f9;
+            padding: 16px 24px;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: background 0.2s;
+        }
+        .accordion-header:hover { background: #e2e8f0; }
+        .accordion-icon { font-size: 18px; transition: transform 0.3s ease; }
+        
+        .accordion-toolbar {
+            padding: 12px 24px;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .excel-download-btn {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+        .excel-download-btn:hover { background-color: #15803d; }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            padding: 0 24px;
+        }
+        .details-container.open .accordion-content {
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 20px 24px;
+        }
+        .details-container.open .accordion-icon { transform: rotate(180deg); }
+
+        /* Tablo Stilleri */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            text-align: left;
+        }
+        th, td {
+            padding: 12px 14px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th { background-color: #f8fafc; color: #475569; font-weight: 600; }
+        tr:hover td { background-color: #f8fafc; }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge.shipped { background: #dcfce7; color: #166534; }
+        .badge.pending { background: #fef9c3; color: #854d0e; }
+        .badge.ignored { background: #f1f5f9; color: #64748b; }
+
+        /* Modal Stilleri */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-box {
+            background: white;
+            width: 90%;
+            max-width: 550px;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            transform: translateY(20px);
+            transition: transform 0.3s;
+        }
+        .modal-overlay.active .modal-box { transform: translateY(0); }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .modal-header h3 { margin: 0; color: var(--primary); font-size: 20px; }
+        .close-btn { background: none; border: none; font-size: 22px; cursor: pointer; color: #64748b; }
+        .close-btn:hover { color: var(--text); }
+        .modal-body ol { padding-left: 20px; line-height: 1.6; color: #334155; font-size: 14px; margin: 0; }
+        .modal-body li { margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>Sevk Süresi Hesaplama (Sipariş Bazlı)</h1>
+        </div>
+        <div class="header-actions">
+            <button class="info-btn" onclick="toggleModal(true)">
+                <span>⚙️ Çalışma Mantığı</span>
+            </button>
+            <div class="upload-section">
+                <label for="excelFile" style="font-weight: 600; font-size: 13px;">Excel Yükle:</label>
+                <input type="file" id="excelFile" accept=".xlsx, .xls" onchange="handleFile(event)">
+            </div>
+        </div>
+    </header>
+
+    <!-- Başlangıç Ekranı -->
+    <div id="welcomeBox" class="welcome-box">
+        Lütfen yukarıdaki alandan <strong>Excel dosyanızı</strong> seçin. Özet rapor otomatik olarak oluşturulacaktır.
+    </div>
+
+    <!-- Özet Kartı -->
+    <div id="summaryCard" class="summary-card">
+        <div class="summary-header">
+            <span>Sevk Performans Özeti (Sipariş Bazlı)</span>
+            <span style="font-size: 13px; font-weight: normal; color: #64748b;" id="reportDate"></span>
+        </div>
+        
+        <div class="metrics-grid">
+            <div class="metric-box success">
+                <span>Ortalama Sevk Süresi</span>
+                <strong id="kpiAvgTime">-</strong>
+            </div>
+            <div class="metric-box primary">
+                <span>Toplam Sipariş (Disp Order)</span>
+                <strong id="kpiTotalOrders">0</strong>
+            </div>
+            <div class="metric-box success">
+                <span>Sevk Edilen Sipariş Sayısı</span>
+                <strong id="kpiShippedOrders">0</strong>
+            </div>
+            <div class="metric-box warning">
+                <span>Sevk Bekleyen Sipariş Sayısı</span>
+                <strong id="kpiPendingOrders">0</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detay Listesi -->
+    <div id="detailsContainer" class="details-container">
+        <div class="accordion-header" onclick="toggleAccordion()">
+            <span>Sipariş Bazlı Detay Listesi</span>
+            <span class="accordion-icon">&#9660;</span>
+        </div>
+        <div class="accordion-toolbar">
+            <button class="excel-download-btn" onclick="exportDetailsToExcel(event)">
+                <span>📊 Detayları Excel İndir</span>
+            </button>
+        </div>
+        <div class="accordion-content">
+            <table id="detailsTable">
+                <thead>
+                    <tr>
+                        <th>Disp Order Number</th>
+                        <th>Sipariş Tarihi</th>
+                        <th>Sevk Tarihi (Genel Sevk)</th>
+                        <th>İş Günü Süresi</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody id="detailsTableBody">
+                    <!-- Dinamik doldurulacak -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Çalışma Mantığı Penceresi -->
+<div id="infoModal" class="modal-overlay" onclick="handleModalOutsideClick(event)">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>Sistem Nasıl Çalışır?</h3>
+            <button class="close-btn" onclick="toggleModal(false)">&times;</button>
+        </div>
+        <div class="modal-body">
+            <ol>
+                <li><strong>Siparişleri Gruplama:</strong> Aynı <em>Disp Order Number</em> sahipleri satır bazından bir araya toplanır.</li>
+                <li><strong>Başlangıç Tarihi:</strong> Siparişin oluşturulma tarihi olan <em>Disp Order Date</em> baz alınır.</li>
+                <li><strong>Parçalı Sevk Filtrelemesi:</strong> Parçalı sevkiyatlarda, tek bir küçük ürünün çok geç sevk edilerek ortalamayı saptırmasını önlemek amacıyla uçuk tarihler elelenir ve çoğunluğun/paketlerin yoğunlaştığı en mantıklı sevk tarihi esas alınır.</li>
+                <li><strong>Aynı Gün Hariç Tutma:</strong> Siparişi oluşturan tarih ile sevk edilen tarih **tamamen aynı gün olanlar (0 gün sürenler) ortalamaya ve hesaplamaya kesinlikle dahil edilmez**.</li>
+                <li><strong>Net İş Günü:</strong> Kalan siparişler için aradaki **hafta sonları ve resmi tatiller** düşülerek net iş günü süresi hesaplanır ve genel ortalama çıkarılır.</li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+<script>
+let globalDetailsData = [];
+
+function toggleModal(open) {
+    const modal = document.getElementById('infoModal');
+    if (open) modal.classList.add('active');
+    else modal.classList.remove('active');
+}
+
+function handleModalOutsideClick(event) {
+    const modal = document.getElementById('infoModal');
+    if (event.target === modal) toggleModal(false);
+}
+
+const officialHolidays = [
+    "01-01", "04-23", "05-01", "05-19", "07-15", "30-08", "10-29"
+];
+
+function isHolidayOrWeekend(date) {
+    const dayOfWeek = date.getUTCDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) return true;
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    return officialHolidays.includes(`${month}-${day}`);
+}
+
+function calculateBusinessDays(startDate, endDate) {
+    let count = 0;
+    let curDate = new Date(startDate.getTime());
+    curDate.setUTCDate(curDate.getUTCDate() + 1);
+    while (curDate <= endDate) {
+        if (!isHolidayOrWeekend(curDate)) count++;
+        curDate.setUTCDate(curDate.getUTCDate() + 1);
+    }
+    return count;
+}
+
+function handleFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, {type: 'array'});
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rawData = XLSX.utils.sheet_to_json(worksheet);
+        calculateSummary(rawData);
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function getMostFrequentOrMedianDate(dateList) {
+    if (dateList.length === 0) return null;
+    dateList.sort((a, b) => a - b);
+    let midIndex = Math.floor(dateList.length / 2);
+    return dateList[midIndex];
+}
+
+function calculateSummary(data) {
+    const grouped = {};
+
+    data.forEach(row => {
+        const orderNo = row['Disp Order Number'];
+        if (!orderNo) return;
+
+        let dispDt = parseExcelDateOnly(row['Disp Order Date']);
+        let shipDt = row['Shipping Date'] ? parseExcelDateOnly(row['Shipping Date']) : null;
+
+        if (!grouped[orderNo]) {
+            grouped[orderNo] = {
+                dispOrderDate: dispDt,
+                dispOrderDateStr: row['Disp Order Date'],
+                shippingDates: []
+            };
+        }
+
+        if (shipDt && !isNaN(shipDt)) {
+            grouped[orderNo].shippingDates.push(shipDt);
+        }
+    });
+
+    let totalOrders = 0;
+    let shippedCount = 0;
+    let pendingCount = 0;
+    let totalLeadTimeDays = 0;
+    let validLeadTimeOrdersCount = 0;
+
+    globalDetailsData = [];
+    let tableRowsHtml = '';
+
+    for (let orderNo in grouped) {
+        totalOrders++;
+        let item = grouped[orderNo];
+        let dispDt = item.dispOrderDate;
+
+        let statusText = 'Sevk Bekliyor';
+        let businessDaysText = '-';
+        let targetShipStr = '-';
+        let badgeClass = 'pending';
+
+        if (item.shippingDates.length > 0) {
+            shippedCount++;
+            let targetShipDt = getMostFrequentOrMedianDate(item.shippingDates);
+            targetShipStr = formatDateReadable(targetShipDt);
+            statusText = 'Sevk Edildi';
+            badgeClass = 'shipped';
+
+            // Aynı gün sevk edilmişse (0 gün) hesaba katma
+            if (dispDt.getTime() === targetShipDt.getTime()) {
+                businessDaysText = '0 gün (Aynı gün - Hariç Tutuldu)';
+                badgeClass = 'ignored';
+            } else {
+                let businessDays = calculateBusinessDays(dispDt, targetShipDt);
+                if (businessDays > 0) {
+                    totalLeadTimeDays += businessDays;
+                    validLeadTimeOrdersCount++;
+                    businessDaysText = businessDays + ' gün';
+                } else {
+                    businessDaysText = '0 gün (Hariç Tutuldu)';
+                    badgeClass = 'ignored';
+                }
+            }
+        } else {
+            pendingCount++;
+        }
+
+        let formattedDispDate = !isNaN(dispDt) ? formatDateReadable(dispDt) : item.dispOrderDateStr;
+
+        globalDetailsData.push({
+            'Disp Order Number': orderNo,
+            'Sipariş Tarihi': formattedDispDate,
+            'Sevk Tarihi (Genel Sevk)': targetShipStr,
+            'İş Günü Süresi': businessDaysText,
+            'Durum': statusText
+        });
+
+        tableRowsHtml += `
+            <tr>
+                <td><strong>${orderNo}</strong></td>
+                <td>${formattedDispDate}</td>
+                <td>${targetShipStr}</td>
+                <td>${businessDaysText}</td>
+                <td><span class="badge ${badgeClass}">${statusText}</span></td>
+            </tr>
+        `;
+    }
+
+    const avgDays = validLeadTimeOrdersCount > 0 ? (totalLeadTimeDays / validLeadTimeOrdersCount).toFixed(2) : 0;
+    const currentReportDateStr = new Date().toLocaleDateString('tr-TR');
+
+    document.getElementById('kpiAvgTime').innerText = avgDays + ' gün';
+    document.getElementById('kpiTotalOrders').innerText = totalOrders;
+    document.getElementById('kpiShippedOrders').innerText = shippedCount;
+    document.getElementById('kpiPendingOrders').innerText = pendingCount;
+    document.getElementById('reportDate').innerText = 'Rapor Tarihi: ' + currentReportDateStr;
+
+    document.getElementById('detailsTableBody').innerHTML = tableRowsHtml;
+
+    document.getElementById('welcomeBox').style.display = 'none';
+    document.getElementById('summaryCard').classList.add('active');
+    document.getElementById('detailsContainer').classList.add('active');
+}
+
+function toggleAccordion() {
+    const container = document.getElementById('detailsContainer');
+    container.classList.toggle('open');
+}
+
+function exportDetailsToExcel(event) {
+    event.stopPropagation();
+    if (globalDetailsData.length === 0) {
+        alert('İndirilecek veri bulunamadı. Lütfen önce Excel yükleyin.');
+        return;
+    }
+    const worksheet = XLSX.utils.json_to_sheet(globalDetailsData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sipariş Detayları");
+    XLSX.writeFile(workbook, "Siparis_Sevk_Detay_Raporu.xlsx");
+}
+
+function parseExcelDateOnly(dateVal) {
+    if (!dateVal) return new Date(NaN);
+    if (typeof dateVal === 'number') {
+        const utc_days = Math.floor(dateVal - 25569);
+        const utc_value = utc_days * 86400;
+        let d = new Date(utc_value * 1000);
+        return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+    }
+    let d = new Date(dateVal);
+    return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+}
+
+function formatDateReadable(dateObj) {
+    if (isNaN(dateObj)) return '-';
+    const day = String(dateObj.getUTCDate()).padStart(2, '0');
+    const month = String(dateObj.getUTCDay() + 1).padStart(2, '0');
+    const year = dateObj.getUTCFullYear();
+    return `${day}.${month}.${year}`;
+}
+</script>
+
+</body>
+</html>

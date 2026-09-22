@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Fas Sevkiyat Çeki Listesi</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: #f0f2f5; margin: 0; padding: 25px; display: flex; flex-direction: column; align-items: center; }
+    
+    /* Modern Kontrol Paneli */
+    .no-print { 
+      background: #ffffff; 
+      padding: 24px 30px; 
+      border-radius: 12px; 
+      width: 660px; 
+      margin-bottom: 25px; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
+      border: 1px solid #e4e6eb;
+    }
+    .no-print h3 { 
+      margin: 0 0 16px 0; 
+      font-size: 18px; 
+      color: #1a1d20; 
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .no-print h3::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 18px;
+      background-color: #000;
+      border-radius: 2px;
+    }
+    
+    .controls-row { 
+      display: flex; 
+      gap: 15px; 
+      align-items: center; 
+    }
+    
+    /* Dosya Yükleme Alanı Tasarımı */
+    .file-input-wrapper {
+      position: relative;
+      flex-grow: 1;
+      overflow: hidden;
+      display: inline-block;
+      border: 2px dashed #cbd5e1;
+      border-radius: 8px;
+      background: #fafafa;
+      padding: 8px 12px;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+    .file-input-wrapper:hover {
+      border-color: #000;
+      background: #f8fafc;
+    }
+    .file-input-wrapper input[type="file"] {
+      font-size: 13px;
+      color: #4b5563;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    /* Modern Buton */
+    .print-btn { 
+      background-color: #111827; 
+      color: #ffffff; 
+      border: none; 
+      padding: 10px 20px; 
+      font-size: 14px; 
+      font-weight: 600;
+      border-radius: 8px; 
+      cursor: pointer; 
+      transition: background-color 0.2s, transform 0.1s;
+      white-space: nowrap;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .print-btn:hover { background-color: #374151; }
+    .print-btn:active { transform: scale(0.98); }
+
+    #labels-container { display: flex; flex-direction: column; gap: 20px; align-items: center; width: 100%; }
+
+    /* Etiket Ana Konteyner - Tek Sayfaya Kesin Uyum */
+    .label-box {
+      width: 660px;
+      height: 98vh;
+      max-height: 98vh;
+      background: #fff;
+      border: 2px solid #000;
+      color: #000;
+      page-break-after: always;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    /* Üst Başlık Hücreleri */
+    .row { display: flex; width: 100%; border-bottom: 2px solid #000; flex-shrink: 0; }
+    
+    .top-col { 
+      width: 20%; 
+      border-right: 1px solid #000; 
+      display: flex; 
+      flex-direction: column;
+    }
+    .top-col:last-child { border-right: none; }
+    
+    .field-label { 
+      font-size: 9px; 
+      font-weight: bold; 
+      text-transform: uppercase; 
+      height: 20px;
+      line-height: 20px;
+      text-align: center;
+      width: 100%; 
+      border-bottom: 1px solid #000;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .field-label.small-text { font-size: 7.5px; letter-spacing: -0.3px; }
+    .field-value { 
+      font-size: 12px; 
+      font-weight: bold; 
+      padding: 4px 2px; 
+      width: 100%; 
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-grow: 1;
+    }
+    
+    /* Orta Bölüm (Barkod + Delivery Address) */
+    .middle-section { display: flex; width: 100%; border-bottom: 2px solid #000; height: 85px; flex-shrink: 0; }
+    .middle-left { width: 48%; border-right: 2px solid #000; display: flex; flex-direction: column; justify-content: space-between; }
+    .middle-right { width: 52%; display: flex; flex-direction: column; }
+
+    /* Barkod Alanı */
+    .barcode-container { padding: 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; }
+    .barcode-container svg { width: 100%; height: 62px; }
+
+    /* Siyah Kutu */
+    .black-banner-tr-left { 
+      background-color: #000 !important; 
+      color: #fff !important; 
+      text-align: center; 
+      font-weight: bold; 
+      font-size: 14px; 
+      padding: 1px 0; 
+      border-top: 2px solid #000; 
+      width: 100%;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .address-title { font-size: 8.5px; font-weight: bold; text-align: center; width: 100%; border-bottom: 1px solid #000; padding: 2px 0; flex-shrink: 0; }
+    .address-text { font-size: 10px; font-weight: bold; padding: 4px 6px; text-align: center; line-height: 1.15; display: flex; align-items: center; justify-content: center; height: 100%; }
+
+    /* Marka Alanı & Destination Address */
+    .brand-row { display: flex; width: 100%; border-bottom: 2px solid #000; height: 65px; flex-shrink: 0; }
+    .brand-left { width: 48%; border-right: 2px solid #000; display: flex; align-items: center; }
+    .brand-ar { 
+      background-color: #000 !important; 
+      color: #fff !important; 
+      font-size: 26px; 
+      font-weight: bold; 
+      width: 35%; 
+      height: 100%; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .brand-name { width: 65%; font-size: 20px; font-weight: 900; text-align: center; font-family: 'Arial Narrow', Arial, sans-serif; letter-spacing: -0.5px; }
+    .brand-right { width: 52%; display: flex; flex-direction: column; }
+    .dest-address-text { font-size: 9.5px; font-weight: bold; padding: 4px 6px; text-align: center; line-height: 1.15; display: flex; align-items: center; justify-content: center; height: 100%; }
+
+    .country-header { font-size: 20px; font-weight: bold; text-align: center; letter-spacing: 1px; padding: 2px 0; border-bottom: 2px solid #000; flex-shrink: 0; }
+    .checklist-header { font-size: 11px; font-weight: bold; text-align: center; padding: 2px 0; border-bottom: 2px solid #000; flex-shrink: 0; }
+
+    /* Checklist Tablo Alanı - Dinamik Oturma */
+    .checklist-container { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; }
+    .checklist-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .checklist-table th { font-size: 9.5px; font-weight: bold; border-bottom: 1px solid #000; border-right: 1px solid #000; padding: 2px; white-space: nowrap; overflow: hidden; text-align: center; background: #fff; }
+    .checklist-table td { 
+      font-weight: bold; 
+      border-bottom: 1px solid #000; 
+      border-right: 1px solid #000; 
+      text-align: center !important; 
+      white-space: nowrap; 
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+    }
+    .checklist-table th:last-child, .checklist-table td:last-child { border-right: none; }
+
+    .total-row { display: flex; width: 100%; font-weight: bold; font-size: 10.5px; border-top: 1px solid #000; flex-shrink: 0; height: 26px; }
+    .total-label { width: 85%; text-align: center; display: flex; align-items: center; justify-content: center; border-right: 1px solid #000; }
+    .total-value { width: 15%; text-align: center; display: flex; align-items: center; justify-content: center; }
+
+    /* Sayfa ve Yazdırma Ayarları */
+    @page {
+      size: A4 portrait;
+      margin: 5mm;
+    }
+
+    @media print {
+      * { 
+        -webkit-print-color-adjust: exact !important; 
+        print-color-adjust: exact !important; 
+      }
+      body { background: #fff; margin: 0; padding: 0; }
+      .no-print { display: none; }
+      #labels-container { gap: 0; }
+      .label-box { 
+        width: 100% !important; 
+        height: 100vh !important;
+        max-height: 100vh !important;
+        border: 2px solid #000 !important; 
+        page-break-after: always; 
+        page-break-inside: avoid;
+        break-inside: avoid;
+        margin: 0 auto;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="no-print">
+  <h3>Fas Sevkiyat Çeki Listesi</h3>
+  <div class="controls-row">
+    <div class="file-input-wrapper">
+      <input type="file" id="excelFile" accept=".xlsx, .xls" />
+    </div>
+    <button class="print-btn" onclick="window.print()">Tüm Kolileri Yazdır</button>
+  </div>
+</div>
+
+<div id="labels-container"></div>
+
+<script>
+  // Renk Kodu Sözlüğü (İngilizce Açıklamalar)
+  const colorMap = {
+    "100": "WHITE", "150": "GOLD", "813": "DARK BROWN", "312": "KHAKI", "130": "BEIGE",
+    "924": "DARK GREY MELANGE", "599": "FUCHSIA", "508": "PLUM", "900": "BLACK", "966": "LIGHT ANTHRACITE",
+    "131": "LIGHT BEIGE", "132": "LIGHT BEIGE", "336": "LIGHT PINE GREEN", "700": "ORANGE", "496": "DARK NAVY BLUE",
+    "999": "MULTICOLOR", "265": "GOLD", "133": "DARK BEIGE", "503": "PURPLE", "300": "GREEN",
+    "600": "RED", "303": "GREEN", "612": "PINK", "920": "GREY", "669": "DUSTY PINK",
+    "273": "SILVER", "097": "DARK SILVER", "114": "ECRU", "210": "MUSTARD", "498": "NAVY BLUE",
+    "971": "ANTHRACITE", "713": "BURNT ORANGE", "928": "STONE", "400": "BLUE", "800": "BROWN",
+    "884": "BRICK RED", "260": "CAMEL", "200": "YELLOW", "927": "MINK", "542": "MEDIUM BLUE",
+    "916": "GREY", "269": "DARK CAMEL", "564": "BURGUNDY", "211": "MUSTARD", "817": "BRICK RED",
+    "494": "NAVY BLUE", "332": "MINT GREEN", "164": "COPPER", "922": "GREY MELANGE", "610": "PINK",
+    "667": "FUCHSIA", "679": "POWDER PINK", "802": "MILKY COFFEE", "402": "DUSTY BLUE", "816": "ASH BROWN",
+    "668": "DUSTY PINK", "327": "EMERALD GREEN", "972": "ANTHRACITE MELANGE", "554": "LILAC", "604": "DARK RED",
+    "330": "LIGHT AQUA GREEN", "313": "LIGHT KHAKI", "611": "SALMON PINK", "420": "LIGHT BLUE", "609": "LIGHT PINK",
+    "328": "AQUA GREEN", "411": "BLUE", "917": "LIGHT GREY", "923": "GREY", "810": "LIGHT BROWN",
+    "495": "NAVY BLUE", "801": "DARK BROWN", "305": "GREEN", "930": "DARK MINK", "458": "SAPPHIRE",
+    "416": "BABY BLUE", "419": "BLUE", "806": "LIGHT BROWN", "815": "LIGHT BROWN", "921": "LIGHT GREY",
+    "628": "PINK", "636": "LIGHT PINK", "602": "CORAL", "614": "LIGHT PINK", "216": "LIGHT YELLOW",
+    "638": "DUSTY ROSE", "978": "MULTICOLOUR", "161": "SILVER", "517": "LIGHT PURPLE", "198": "LIME",
+    "480": "TURQUOISE", "980": "ROSE", "306": "DARK GREEN", "585": "BURGUNDY", "451": "INDIGO BLUE",
+    "433": "LIGHT INDIGO BLUE", "676": "DEEP PEACH", "110": "ECRU", "428": "PETROL BLUE", "486": "TURQUOISE",
+    "620": "LIGHT SALMON", "932": "METALLIC BLUE", "678": "LIGHT DUSTY PINK", "658": "NEON PINK", "207": "DARK YELLOW",
+    "485": "LIGHT NAVY BLUE", "945": "LIGHT MINK", "137": "BEIGE", "203": "YELLOW", "340": "FOREST GREEN",
+    "206": "LIGHT YELLOW", "339": "LIGHT AQUA GREEN", "427": "DARK PETROL BLUE", "307": "OLIVE GREEN", "812": "CINNAMON",
+    "406": "LIGHT DUSTY BLUE", "298": "ACID GREEN", "502": "DARK PURPLE", "988": "BEIGE MELANGE", "949": "NEFTI GREEN",
+    "563": "DARK BURGUNDY", "163": "BRONZE", "909": "MINK", "615": "DARK SALMON PINK", "925": "ASH STONE",
+    "449": "INDIGO BLUE", "660": "POWDER PINK", "304": "LIGHT GREEN", "261": "CAMEL", "618": "DARK PINK",
+    "297": "NEFTI GREEN", "720": "CORAL", "270": "DARK CAMEL", "551": "LIGHT DUSTY LILAC", "926": "LIGHT STONE",
+    "126": "CREAM", "102": "OPAQUE WHITE", "763": "LIGHT TAN", "918": "LIGHT GREY MELANGE", "403": "BLUE",
+    "670": "DARK FUCHSIA", "321": "SPRING GREEN", "302": "DARK OLIVE GREEN", "320": "DARK GREEN", "409": "DARK BLUE",
+    "315": "DARK KHAKI", "325": "GREEN", "351": "BLUE GREEN", "103": "CHARCOAL", "214": "BRIGHT MUSTARD",
+    "205": "YELLOW", "562": "BURGUNDY", "976": "PATTERNED", "309": "DARK GREEN", "430": "LIGHT PETROL BLUE",
+    "805": "REDDISH BROWN", "165": "COBALT", "213": "LIGHT MUSTARD", "415": "LIGHT SKY BLUE", "701": "ORANGE",
+    "919": "MEDIUM GREY MELANGE", "417": "ELECTRIC BLUE", "412": "SKY BLUE", "606": "RED", "661": "PINK",
+    "561": "RED BRICK", "212": "DARK MUSTARD", "545": "ICE BLUE", "630": "PINK", "326": "DARK GREEN",
+    "913": "DARK GREY", "311": "OCEAN GREEN", "405": "SKY BLUE", "915": "DUSTY GREY", "113": "ECRU MELANGE",
+    "414": "ELECTRIC BLUE", "263": "LIGHT CAMEL", "341": "GRASS GREEN", "613": "SALMON PINK", "762": "TAN",
+    "324": "LIGHT GREEN", "712": "DARK ORANGE", "633": "DARK DUSTY ROSE", "818": "BRICK RED", "343": "PISTACHIO GREEN",
+    "331": "PINE GREEN", "101": "WHITE", "650": "CORAL", "120": "LIGHT TURQUOISE", "500": "EGGPLANT PURPLE",
+    "711": "DARK ORANGE", "201": "LEMON YELLOW", "125": "BEIGE", "375": "SAGE GREEN", "662": "LIGHT PINK",
+    "619": "DARK RED", "310": "KHAKI", "938": "MINK", "965": "STONE", "448": "INDIGO BLUE",
+    "386": "DARK KHAKI", "491": "DARK BLUE", "116": "ECRU CREAM", "621": "CHINESE RED", "552": "PASTEL LILAC",
+    "481": "BRIGHT TURQUOISE", "665": "CANDY PINK", "135": "CHAMPAGNE", "413": "NEW LIGHT BLUE", "607": "RED",
+    "452": "DARK INDIGO BLUE", "104": "LIGHT GOLD", "635": "LIGHT CHERRY RED", "299": "EMERALD GREEN", "934": "DARK GREY",
+    "666": "PEACH", "702": "LIGHT ORANGE", "401": "BLUE MELANGE", "929": "DARK MINK", "372": "OLIVE GREEN",
+    "979": "DARK ANTHRACITE", "098": "TRANSPARENT", "001": "NEW", "899": "BROWN", "803": "BITTER BROWN",
+    "431": "PETROL GREEN", "973": "DARK ANTHRACITE MELANGE", "820": "BITTER BROWN", "819": "BROWN MELANGE", "603": "SUMAC",
+    "565": "BURGUNDY MELANGE", "505": "LAVENDER", "493": "NAVY BLUE", "096": "NUDE", "985": "LIGHT RODEO",
+    "989": "DARK RODEO", "986": "MID RODEO", "106": "OFF-WHITE", "796": "BRICK RED", "526": "MAUVE",
+    "489": "NAVY BLUE MELANGE", "217": "CARAMEL", "154": "BRONZE KHAKI", "004": "STRIPED", "345": "KHAKI MELANGE",
+    "408": "MIDNIGHT BLUE", "129": "BRIGHT BEIGE", "946": "NUDE", "152": "ICE GREY", "134": "DARK BEIGE",
+    "814": "DARK CINNAMON", "482": "DARK TURQUOISE", "608": "FLAME RED", "677": "LIGHT DUSTY PINK", "308": "MOSS GREEN",
+    "342": "DARK FOREST GREEN", "637": "ROSE PINK", "644": "DARK PINK", "601": "FLAG RED", "335": "DUSTY GREEN",
+    "523": "WINTER WINE", "550": "DUSTY LILAC", "202": "WARM YELLOW", "338": "PINE GREEN", "319": "KHAKI",
+    "360": "AVOCADO", "373": "LIGHT OLIVE GREEN", "795": "LIGHT PEACH", "809": "LIGHT BROWN", "785": "LIGHT TOBACCO",
+    "499": "NAVY BLUE", "910": "BLACK RED", "911": "BLACK PURPLE", "912": "BLACK GREY", "655": "CORAL",
+    "699": "DUSTY ROSE PINK", "506": "NEW EGGPLANT PURPLE", "337": "DARK PINE GREEN", "484": "LIGHT TURQUOISE", "316": "ARMY GREEN",
+    "199": "LIME", "616": "DARK CHERRY RED", "715": "BURNT ORANGE", "329": "DARK AQUA GREEN", "404": "DUSTY BLUE",
+    "987": "RAINBOW", "639": "PASTEL PINK", "808": "GOLDEN BROWN", "136": "SAND BEIGE", "947": "DARK NUDE",
+    "651": "LIGHT CORAL", "681": "PASTEL PEACH", "634": "LIGHT DUSTY ROSE", "914": "SILVER MINK", "504": "DARK EGGPLANT PURPLE",
+    "483": "LIGHT TURQUOISE", "553": "LILAC", "510": "DARK EGGPLANT PURPLE", "933": "WALL GREY", "663": "PALE PINK",
+    "516": "EGGPLANT PURPLE", "656": "CORAL", "334": "NEW KHAKI", "440": "PETROL BLUE", "570": "LIGHT BURGUNDY",
+    "811": "DARK BROWN", "723": "NEW CORAL", "426": "DARK SKY BLUE", "680": "PEACH", "827": "DARK BRICK RED",
+    "710": "DARK GINGER", "365": "LIGHT TURQUOISE", "429": "DARK PETROL BLUE", "369": "LIGHT TURQUOISE", "943": "GREY",
+    "490": "NAVY BLUE", "901": "BLACK", "807": "TOBACCO", "671": "DEEP PINK", "374": "DARK OLIVE GREEN",
+    "524": "PLUM", "501": "LIGHT EGGPLANT PURPLE", "823": "BRICK RED", "804": "BROWN STRIPE", "97": "DARK SILVER",
+    "323": "NEW KHAKI", "721": "CORAL", "275": "SILVER STRIPE"
+  };
+
+  function getVal(row, keys) {
+    for (let k of keys) {
+      for (let rk in row) {
+        if (rk.trim().replace(/İ/g, 'I').replace(/I/g, 'I').toUpperCase() === k.toUpperCase()) {
+          return row[rk];
+        }
+      }
+    }
+    return '';
+  }
+
+  document.getElementById('excelFile').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+
+      if (jsonData.length > 0) {
+        processAndRenderAllBoxes(jsonData);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+
+  function processAndRenderAllBoxes(jsonData) {
+    const container = document.getElementById('labels-container');
+    container.innerHTML = '';
+
+    const groupedData = {};
+    jsonData.forEach(row => {
+      const boxNo = getVal(row, ['BOX NO', 'BoxNo', 'BOX NO']) || '1';
+      if (!groupedData[boxNo]) {
+        groupedData[boxNo] = [];
+      }
+      groupedData[boxNo].push(row);
+    });
+
+    const boxKeys = Object.keys(groupedData).sort((a, b) => parseInt(a) - parseInt(b));
+    const totalBoxes = boxKeys.length;
+
+    boxKeys.forEach((boxNo, index) => {
+      const rows = groupedData[boxNo];
+      const head = rows[0];
+
+      const supplier = getVal(head, ['SUPPLIER NO', 'SupplierNo']) || '120-01-04-049';
+      const warehouse = 'TUR'; // Sabitlendi
+      const boxSize = getVal(head, ['BOX SIZE', 'BOX SİZE', 'BoxSize']) || '40X60X40';
+      const boxId = getVal(head, ['BOX ID', 'BoxId']) || 'P417722';
+      const delAddress = getVal(head, ['DELIVERY ADDRESS', 'DELİVERY ADDRESS', 'DelAddress']) || 'YEDI EYLUL MAH. CELAL UMUR CAD. NO: 6, TORBALI, IZMIR, TURKEY';
+      const destAddress = getVal(head, ['DESTINATION ADDRESS', 'DestAddress']) || 'CENTRE COMMERCIAL ANFA PLACE LIVING RESORT LOCAL L2.4 BD LA CORNICHE, CASABLANCA';
+      const country = getVal(head, ['COUNTRY', 'Country']) || 'MOROCCO';
+
+      const barcodeId = `barcode-box-${index}`;
+      const boxNoFormatted = `${boxNo}/${totalBoxes}`;
+
+      // Gelişmiş Dinamik Satır Sıkıştırma Algoritması
+      const rowCount = rows.length;
+      let fontSize = '10px';
+      let cellPadding = '2px';
+      let rowHeight = 'auto';
+
+      if (rowCount > 12 && rowCount <= 20) {
+        fontSize = '9px';
+        cellPadding = '1.5px 2px';
+      } else if (rowCount > 20 && rowCount <= 28) {
+        fontSize = '8px';
+        cellPadding = '1px 2px';
+      } else if (rowCount > 28) {
+        fontSize = '7.5px';
+        cellPadding = '0.5px 2px';
+      }
+
+      const styleString = `font-size: ${fontSize}; padding: ${cellPadding}; height: ${rowHeight};`;
+
+      let checklistHtml = '';
+      let totalUnits = 0;
+
+      rows.forEach(r => {
+        const origin = getVal(r, ['ORIGIN', 'ORİGİN', 'Origin']) || 'TR';
+        const productCode = getVal(r, ['PRODUCT CODE', 'ProductCode', 'MODEL CODE', 'ModelCode']);
+        const productGroup = getVal(r, ['PRODUCT GROUP', 'ProductGroup', 'PRODUCT_GROUP', 'Ürün Grubu', 'URUN GRUBU']);
+        
+        let rawColor = String(getVal(r, ['COLOR', 'Color']) || '').trim();
+        let color = colorMap[rawColor] ? colorMap[rawColor] : (rawColor || '-');
+
+        const size = getVal(r, ['SIZE', 'SİZE', 'Size']);
+        const unitsVal = getVal(r, ['UNITS', 'Units']);
+        const units = parseInt(unitsVal || 0);
+        totalUnits += units;
+
+        checklistHtml += `
+          <tr>
+            <td style="${styleString}">${origin}</td>
+            <td style="${styleString}">${productCode || ''}</td>
+            <td style="${styleString}">${color}</td>
+            <td style="${styleString}">${size || '-'}</td>
+            <td style="${styleString}">${unitsVal !== '' ? unitsVal : ''}</td>
+            <td style="${styleString}">${productGroup || '-'}</td>
+          </tr>
+        `;
+      });
+
+      const labelCardHtml = `
+        <div class="label-box">
+          <div class="row">
+            <div class="top-col">
+              <div class="field-label">SUPPLIER NO</div>
+              <div class="field-value">${supplier}</div>
+            </div>
+            <div class="top-col">
+              <div class="field-label small-text">DELIVERY WAREHOUSE</div>
+              <div class="field-value">${warehouse}</div>
+            </div>
+            <div class="top-col">
+              <div class="field-label">BOX SIZE</div>
+              <div class="field-value">${boxSize}</div>
+            </div>
+            <div class="top-col">
+              <div class="field-label">BOX NO</div>
+              <div class="field-value">${boxNoFormatted}</div>
+            </div>
+            <div class="top-col">
+              <div class="field-label">BOX ID</div>
+              <div class="field-value">${boxId}</div>
+            </div>
+          </div>
+
+          <div class="middle-section">
+            <div class="middle-left">
+              <div class="barcode-container">
+                <svg id="${barcodeId}"></svg>
+              </div>
+              <div class="black-banner-tr-left">TR</div>
+            </div>
+            <div class="middle-right">
+              <div class="address-title">DELIVERY ADDRESS</div>
+              <div class="address-text">${delAddress}</div>
+            </div>
+          </div>
+
+          <div class="brand-row">
+            <div class="brand-left">
+              <div class="brand-ar">AR</div>
+              <div class="brand-name">JIMMY KEY</div>
+            </div>
+            <div class="brand-right">
+              <div class="address-title">DESTINATION ADDRESS</div>
+              <div class="dest-address-text">${destAddress}</div>
+            </div>
+          </div>
+
+          <div class="country-header">${country}</div>
+          <div class="checklist-header">CHECKLIST</div>
+
+          <div class="checklist-container">
+            <table class="checklist-table">
+              <thead>
+                <tr>
+                  <th style="width: 12%;">Origin</th>
+                  <th style="width: 28%;">PRODUCT CODE</th>
+                  <th style="width: 15%;">COLOR</th>
+                  <th style="width: 13%;">SIZE</th>
+                  <th style="width: 12%;">UNITS</th>
+                  <th style="width: 20%;">PRODUCT GROUP</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${checklistHtml}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="total-row">
+            <div class="total-label">TOTAL UNITS IN BOX</div>
+            <div class="total-value">${totalUnits}</div>
+          </div>
+        </div>
+      `;
+
+      container.insertAdjacentHTML('beforeend', labelCardHtml);
+
+      JsBarcode(`#${barcodeId}`, String(boxId).trim(), {
+        format: "CODE128",
+        displayValue: true,
+        fontSize: 14,
+        fontOptions: "bold",
+        margin: 2,
+        height: 55,
+        width: 2.1
+      });
+    });
+  }
+</script>
+
+</body>
+</html>
