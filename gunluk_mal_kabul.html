@@ -687,21 +687,42 @@
         document.getElementById('fiiliGrandTotal').innerText = grandFiili;
     }
 
-    function copyTableAsHTML() {
-        let element = document.getElementById('captureArea');
-        let range = document.createRange();
-        range.selectNode(element);
+function copyTableAsHTML() {
+    let selectContainer = document.querySelector('.day-select-container');
+    let selectElem = document.getElementById('selectedDaySelect');
+    
+    // 1. Seçili olan günün metnini al (Örn: Çarşamba (23.09.2026))
+    let selectedText = selectElem.options[selectElem.selectedIndex].text;
+    
+    // 2. Orijinal HTML içeriğini yedekle
+    let originalContainerHTML = selectContainer.innerHTML;
+    
+    // 3. Kopyalama esnasında temiz görünmesi için select alanını sadece seçili gün metniyle değiştir
+    selectContainer.innerHTML = `<span style="font-weight: bold; color: #fff; background-color: #2c3e50; padding: 2px 8px; border-radius: 4px;">${selectedText}</span>`;
+
+    // 4. Tabloyu seç ve kopyala
+    let element = document.getElementById('captureArea');
+    let range = document.createRange();
+    range.selectNode(element);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    
+    try {
+        document.execCommand('copy');
         window.getSelection().removeAllRanges();
-        window.getSelection().addRange(range);
+        alert('Tablo, biçimi bozulmadan panoya kopyalandı!');
+    } catch (err) {
+        alert('Kopyalama başarısız oldu.');
+    } finally {
+        // 5. Kopyalama bittikten sonra açılır menüyü tekrar eski haline getir
+        selectContainer.innerHTML = originalContainerHTML;
         
-        try {
-            document.execCommand('copy');
-            window.getSelection().removeAllRanges();
-            alert('Tablo, biçimi bozulmadan panoya kopyalandı!');
-        } catch (err) {
-            alert('Kopyalama başarısız oldu.');
-        }
+        // Select elemanı yeniden yüklendiği için değerini ve event listener'ını koru
+        let newSelectElem = document.getElementById('selectedDaySelect');
+        newSelectElem.value = selectedDayIndex;
     }
+}
+    
 
     window.onload = function() {
         initDates();
