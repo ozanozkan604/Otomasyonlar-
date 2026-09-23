@@ -691,35 +691,46 @@ function copyTableAsHTML() {
     let selectContainer = document.querySelector('.day-select-container');
     let selectElem = document.getElementById('selectedDaySelect');
     
-    // 1. Seçili olan günün metnini al (Örn: Çarşamba (23.09.2026))
+    // 1. O an seçili olan gün ve tarihin metnini al (Örn: Pazartesi (21.09.2026))
     let selectedText = selectElem.options[selectElem.selectedIndex].text;
     
-    // 2. Orijinal HTML içeriğini yedekle
+    // 2. Orijinal HTML içeriğini ve mevcut seçili indeksi yedekle
     let originalContainerHTML = selectContainer.innerHTML;
-    
-    // 3. Kopyalama esnasında temiz görünmesi için select alanını sadece seçili gün metniyle değiştir
-    selectContainer.innerHTML = `<span style="font-weight: bold; color: #fff; background-color: #2c3e50; padding: 2px 8px; border-radius: 4px;">${selectedText}</span>`;
+    let currentDayIndex = selectedDayIndex;
 
-    // 4. Tabloyu seç ve kopyala
-    let element = document.getElementById('captureArea');
+    // 3. Select kutusunu kaldırıp kopyalama alanına SADECE seçili olan aktif tarihi yazıyoruz
+    selectContainer.innerHTML = `<span style="font-weight: bold; color: #fff; background-color: #2c3e50; padding: 3px 8px; border-radius: 4px;">${selectedText}</span>`;
+
+    // 4. Tüm input elemanlarının canlı değerlerini HTML 'value' özniteliğine senkronize et
+    let captureElement = document.getElementById('captureArea');
+    let inputs = captureElement.querySelectorAll('input');
+    inputs.forEach(input => {
+        input.setAttribute('value', input.value);
+    });
+
+    // 5. Tabloyu seç ve panoya kopyala
     let range = document.createRange();
-    range.selectNode(element);
+    range.selectNode(captureElement);
     window.getSelection().removeAllRanges();
     window.getSelection().addRange(range);
     
     try {
         document.execCommand('copy');
         window.getSelection().removeAllRanges();
-        alert('Tablo, biçimi bozulmadan panoya kopyalandı!');
+        alert('Tablo ve aktif gün verisi panoya kopyalandı!');
     } catch (err) {
         alert('Kopyalama başarısız oldu.');
     } finally {
-        // 5. Kopyalama bittikten sonra açılır menüyü tekrar eski haline getir
+        // 6. Kopyalama bittikten sonra açılır menüyü (select) ve değerlerini tam olarak eski haline getir
         selectContainer.innerHTML = originalContainerHTML;
         
-        // Select elemanı yeniden yüklendiği için değerini ve event listener'ını koru
         let newSelectElem = document.getElementById('selectedDaySelect');
-        newSelectElem.value = selectedDayIndex;
+        newSelectElem.value = currentDayIndex;
+        selectedDayIndex = currentDayIndex;
+        
+        // Input'ların ve saatlik tablonun seçili güne göre doğru yüklenip kalmasını sağla
+        loadHourlyInputsForSelectedDay();
+        calculateHourly();
     }
 }
     
