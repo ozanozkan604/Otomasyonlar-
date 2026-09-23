@@ -3,291 +3,259 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sipariş ve Sevkiyat Takip Tablosu</title>
-    <!-- Görsel Kopyalama Kütüphanesi -->
+    <title>Depo Ürün Kabul Takip Raporu</title>
+    <!-- HTML alanını resme dönüştürmek için gerekli kütüphane -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
             margin: 0;
             padding: 20px;
             color: #333;
         }
-
         .container {
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
-            background: #ffffff;
+            background: #fff;
             padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-
         h2 {
             text-align: center;
             color: #2c3e50;
-            margin-bottom: 20px;
-            font-size: 24px;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
+            margin-bottom: 25px;
         }
-
+        .section-title {
+            background-color: #34495e;
+            color: white;
+            padding: 8px 12px;
+            font-weight: bold;
+            font-size: 14px;
+            margin-top: 20px;
+            margin-bottom: 0;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .day-select-container {
+            font-size: 13px;
+            font-weight: normal;
+        }
+        .day-select-container select {
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: none;
+            font-weight: bold;
+            color: #2c3e50;
+            cursor: pointer;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 25px;
-            background-color: #fff;
+            margin-bottom: 20px;
+            background: #fff;
         }
-
         th, td {
-            border: 1px solid #dcdde1;
-            padding: 10px 12px;
+            border: 1px solid #bdc3c7;
+            padding: 8px 10px;
             text-align: center;
-            font-size: 14px;
+            font-size: 13px;
         }
-
         th {
-            background-color: #34495e;
-            color: #ffffff;
-            font-weight: 600;
+            background-color: #ecf0f1;
+            color: #2c3e50;
         }
-
-        .header-acc { background-color: #2980b9; color: white; }
-        .header-tex { background-color: #8e44ad; color: white; }
-        .header-total { background-color: #27ae60; color: white; }
-
-        .row-label {
-            font-weight: bold;
+        .row-header {
             text-align: left;
-            background-color: #f8f9fa;
-            width: 180px;
-        }
-
-        input[type="number"] {
-            width: 90%;
-            padding: 6px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            text-align: center;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        input[type="number"]:focus {
-            border-color: #3498db;
-            background-color: #eaf2f8;
-        }
-
-        /* Ok tuşlarını gizleme */
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
-
-        .calc-val {
             font-weight: bold;
-            background-color: #f1f2f6;
+            background-color: #f8f9fa;
         }
-
+        .total-row {
+            background-color: #eaeded;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            width: 70px;
+            padding: 4px;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
         .btn-container {
-            display: flex;
-            justify-content: flex-end;
-            gap: 15px;
+            text-align: right;
             margin-top: 20px;
         }
-
         .btn {
+            background-color: #27ae60;
+            color: white;
+            border: none;
             padding: 10px 20px;
             font-size: 14px;
             font-weight: bold;
-            color: #fff;
-            background-color: #3498db;
-            border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
             transition: background 0.2s;
+            margin-left: 10px;
         }
-
-        .btn:hover { background-color: #2980b9; }
-        .btn-save { background-color: #2ecc71; }
-        .btn-save:hover { background-color: #27ae60; }
-
-        .day-select-container {
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .btn:hover {
+            background-color: #219653;
         }
-
-        select {
-            padding: 6px 12px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-            font-weight: bold;
-            color: #2c3e50;
+        .btn-save {
+            background-color: #2980b9;
         }
-
-        .sub-header {
-            background-color: #ecf0f1;
-            font-weight: bold;
-            color: #2c3e50;
+        .btn-save:hover {
+            background-color: #1f618d;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    
-    <!-- Kopyalanacak/Görüntülenecek Ana Alan -->
-    <div id="captureArea" style="background: #ffffff; padding: 10px;">
-        <h2>Haftalık Planlanan Sipariş Sayıları</h2>
-        
-        <!-- 1. TABLO: PLANLANAN -->
-        <table>
+    <h2>Depo Ürün Kabul Takip Raporu</h2>
+    <div id="captureArea">
+        <!-- 1. ÜST TABLO: PLANLANAN -->
+        <div class="section-title">DEPOYA GÜNLÜK GELMESİ PLANLANAN ÜRÜN TABLOSU</div>
+        <table id="tablePlan">
             <thead>
                 <tr>
-                    <th class="row-label">Tarih</th>
-                    <th id="th-date-0">Pazartesi</th>
-                    <th id="th-date-1">Salı</th>
-                    <th id="th-date-2">Çarşamba</th>
-                    <th id="th-date-3">Perşembe</th>
-                    <th id="th-date-4">Cuma</th>
-                    <th class="header-total">Toplam</th>
+                    <th>PLANLANAN ÜRÜN</th>
+                    <th id="th-date-0">--</th>
+                    <th id="th-date-1">--</th>
+                    <th id="th-date-2">--</th>
+                    <th id="th-date-3">--</th>
+                    <th id="th-date-4">--</th>
+                    <th>HAFTALIK TOPLAM</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td class="row-label header-acc">Aksesuar Sipariş Sayısı</td>
+                    <td class="row-header">Aksesuar</td>
                     <td><input type="number" class="plan-acc" value="0" oninput="calculateAll()"></td>
                     <td><input type="number" class="plan-acc" value="0" oninput="calculateAll()"></td>
                     <td><input type="number" class="plan-acc" value="0" oninput="calculateAll()"></td>
                     <td><input type="number" class="plan-acc" value="0" oninput="calculateAll()"></td>
                     <td><input type="number" class="plan-acc" value="0" oninput="calculateAll()"></td>
-                    <td class="calc-val" id="planAccTotal">0</td>
+                    <td id="planAccTotal" class="total-cell">0</td>
                 </tr>
                 <tr>
-                    <td class="row-label header-tex">Tekstil Sipariş Sayısı</td>
+                    <td class="row-header">Tekstil</td>
                     <td><input type="number" class="plan-tex" value="0" oninput="calculateAll()"></td>
                     <td><input type="number" class="plan-tex" value="0" oninput="calculateAll()"></td>
                     <td><input type="number" class="plan-tex" value="0" oninput="calculateAll()"></td>
                     <td><input type="number" class="plan-tex" value="0" oninput="calculateAll()"></td>
                     <td><input type="number" class="plan-tex" value="0" oninput="calculateAll()"></td>
-                    <td class="calc-val" id="planTexTotal">0</td>
+                    <td id="planTexTotal" class="total-cell">0</td>
                 </tr>
-                <tr class="sub-header">
-                    <td class="row-label">Günlük Toplam</td>
+                <tr class="total-row">
+                    <td class="row-header">TOPLAM</td>
                     <td id="planDay0">0</td>
                     <td id="planDay1">0</td>
                     <td id="planDay2">0</td>
                     <td id="planDay3">0</td>
                     <td id="planDay4">0</td>
-                    <td class="calc-val" id="planGrandTotal" style="background-color: #27ae60; color: white;">0</td>
+                    <td id="planGrandTotal">0</td>
                 </tr>
             </tbody>
         </table>
 
-        <h2>Saatlik Veri Girişi</h2>
-        
-        <div class="day-select-container">
-            <label for="selectedDaySelect"><strong>Gün Seçiniz:</strong></label>
-            <select id="selectedDaySelect" onchange="switchDay(this.value)">
-                <option value="0">Pazartesi</option>
-                <option value="1">Salı</option>
-                <option value="2">Çarşamba</option>
-                <option value="3">Perşembe</option>
-                <option value="4">Cuma</option>
-            </select>
-        </div>
-
-        <!-- 2. TABLO: SAATLİK -->
-        <table>
+        <!-- 2. ORTA TABLO: FİİLİ GELEN GÜNLÜK ÖZET -->
+        <div class="section-title">DEPOYA GÜNLÜK FİİLİ GELEN ÜRÜN TABLOSU</div>
+        <table id="tableFiili">
             <thead>
                 <tr>
-                    <th class="row-label">Saat Dilimi</th>
-                    <th>10:00 - 12:00</th>
-                    <th>12:00 - 14:00</th>
-                    <th>14:00 - 16:00</th>
-                    <th>16:00 - 18:00</th>
-                    <th class="header-total">Toplam</th>
+                    <th>PLANLANAN ÜRÜN</th>
+                    <th id="fiili-th-date-0">--</th>
+                    <th id="fiili-th-date-1">--</th>
+                    <th id="fiili-th-date-2">--</th>
+                    <th id="fiili-th-date-3">--</th>
+                    <th id="fiili-th-date-4">--</th>
+                    <th>HAFTALIK TOPLAM</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td class="row-label header-acc">Aksesuar Giriş</td>
-                    <td><input type="number" class="hourly-acc" value="0" oninput="calculateHourly()"></td>
-                    <td><input type="number" class="hourly-acc" value="0" oninput="calculateHourly()"></td>
-                    <td><input type="number" class="hourly-acc" value="0" oninput="calculateHourly()"></td>
-                    <td><input type="number" class="hourly-acc" value="0" oninput="calculateHourly()"></td>
-                    <td class="calc-val" id="hourAccSum">0</td>
-                </tr>
-                <tr>
-                    <td class="row-label header-tex">Tekstil Giriş</td>
-                    <td><input type="number" class="hourly-tex" value="0" oninput="calculateHourly()"></td>
-                    <td><input type="number" class="hourly-tex" value="0" oninput="calculateHourly()"></td>
-                    <td><input type="number" class="hourly-tex" value="0" oninput="calculateHourly()"></td>
-                    <td><input type="number" class="hourly-tex" value="0" oninput="calculateHourly()"></td>
-                    <td class="calc-val" id="hourTexSum">0</td>
-                </tr>
-                <tr class="sub-header">
-                    <td class="row-label">Saatlik Toplam</td>
-                    <td id="colSum0">0</td>
-                    <td id="colSum1">0</td>
-                    <td id="colSum2">0</td>
-                    <td id="colSum3">0</td>
-                    <td class="calc-val" id="hourGrandSum" style="background-color: #27ae60; color: white;">0</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <h2>Haftalık Fiili Gerçekleşen Sevkiyatlar</h2>
-        
-        <!-- 3. TABLO: FİİLİ GERÇEKLEŞEN -->
-        <table>
-            <thead>
-                <tr>
-                    <th class="row-label">Tarih</th>
-                    <th id="fiili-th-date-0">Pazartesi</th>
-                    <th id="fiili-th-date-1">Salı</th>
-                    <th id="fiili-th-date-2">Çarşamba</th>
-                    <th id="fiili-th-date-3">Perşembe</th>
-                    <th id="fiili-th-date-4">Cuma</th>
-                    <th class="header-total">Toplam</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="row-label header-acc">Aksesuar Fiili Sevkiyat</td>
+                    <td class="row-header">Aksesuar</td>
                     <td id="fiiliAcc0">0</td>
                     <td id="fiiliAcc1">0</td>
                     <td id="fiiliAcc2">0</td>
                     <td id="fiiliAcc3">0</td>
                     <td id="fiiliAcc4">0</td>
-                    <td class="calc-val" id="fiiliAccTotal">0</td>
+                    <td id="fiiliAccTotal">0</td>
                 </tr>
                 <tr>
-                    <td class="row-label header-tex">Tekstil Fiili Sevkiyat</td>
+                    <td class="row-header">Tekstil</td>
                     <td id="fiiliTex0">0</td>
                     <td id="fiiliTex1">0</td>
                     <td id="fiiliTex2">0</td>
                     <td id="fiiliTex3">0</td>
                     <td id="fiiliTex4">0</td>
-                    <td class="calc-val" id="fiiliTexTotal">0</td>
+                    <td id="fiiliTexTotal">0</td>
                 </tr>
-                <tr class="sub-header">
-                    <td class="row-label">Günlük Toplam Sevkiyat</td>
+                <tr class="total-row">
+                    <td class="row-header">TOPLAM</td>
                     <td id="fiiliDay0">0</td>
                     <td id="fiiliDay1">0</td>
                     <td id="fiiliDay2">0</td>
                     <td id="fiiliDay3">0</td>
                     <td id="fiiliDay4">0</td>
-                    <td class="calc-val" id="fiiliGrandTotal" style="background-color: #27ae60; color: white;">0</td>
+                    <td id="fiiliGrandTotal">0</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- 3. ALT TABLO: SAATLİK DETAY (GÜN SEÇİMLİ) -->
+        <div class="section-title">
+            <span>DEPOYA GÜNLÜK FİİLİ GELEN ÜRÜN TABLOSU (Saatlik Detay Girişi)</span>
+            <div class="day-select-container">
+                <label for="selectedDaySelect">İşlem Yapılan Gün: </label>
+                <select id="selectedDaySelect" onchange="switchDay(this.value)">
+                    <option value="0">Pazartesi</option>
+                    <option value="1">Salı</option>
+                    <option value="2">Çarşamba</option>
+                    <option value="3">Perşembe</option>
+                    <option value="4">Cuma</option>
+                </select>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>ÜRÜN / SAAT</th>
+                    <th>07:40-12:00</th>
+                    <th>12:00-15:00</th>
+                    <th>15:00-16:00</th>
+                    <th>16:00-17:30</th>
+                    <th>TOPLAM</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="row-header">Aksesuar</td>
+                    <td><input type="number" class="hourly-acc" value="0" oninput="calculateHourly()"></td>
+                    <td><input type="number" class="hourly-acc" value="0" oninput="calculateHourly()"></td>
+                    <td><input type="number" class="hourly-acc" value="0" oninput="calculateHourly()"></td>
+                    <td><input type="number" class="hourly-acc" value="0" oninput="calculateHourly()"></td>
+                    <td id="hourAccSum" style="font-weight: bold;">0</td>
+                </tr>
+                <tr>
+                    <td class="row-header">Tekstil</td>
+                    <td><input type="number" class="hourly-tex" value="0" oninput="calculateHourly()"></td>
+                    <td><input type="number" class="hourly-tex" value="0" oninput="calculateHourly()"></td>
+                    <td><input type="number" class="hourly-tex" value="0" oninput="calculateHourly()"></td>
+                    <td><input type="number" class="hourly-tex" value="0" oninput="calculateHourly()"></td>
+                    <td id="hourTexSum" style="font-weight: bold;">0</td>
+                </tr>
+                <tr class="total-row">
+                    <td class="row-header">Toplam</td>
+                    <td id="colSum0">0</td>
+                    <td id="colSum1">0</td>
+                    <td id="colSum2">0</td>
+                    <td id="colSum3">0</td>
+                    <td id="hourGrandSum" style="font-weight: bold;">0</td>
                 </tr>
             </tbody>
         </table>
@@ -298,250 +266,246 @@
         <button class="btn btn-save" onclick="saveData()">Verileri Kaydet</button>
         <button class="btn" onclick="copyTableAsHTML()">Tablo Şeklinde Panoya Kopyala</button>
     </div>
-
 </div>
 
 <script>
-let weekDays = [];
-let selectedDayIndex = 0; 
+    let weekDays = [];
+    let selectedDayIndex = 0; 
 
-function getMonday(d) {
-    d = new Date(d);
-    let day = d.getDay();
-    let diff = d.getDate() - day + (day === 0 ? -6 : 1);
-    return new Date(d.setDate(diff));
-}
+    function getMonday(d) {
+        d = new Date(d);
+        let day = d.getDay();
+        let diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        return new Date(d.setDate(diff));
+    }
 
-function initDates() {
-    let today = new Date();
-    let monday = getMonday(today);
-    
-    weekDays = [];
-    let dayNames = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"];
-    let selectElem = document.getElementById('selectedDaySelect');
+    function initDates() {
+        let today = new Date();
+        let monday = getMonday(today);
+        
+        weekDays = [];
+        let dayNames = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"];
+        let selectElem = document.getElementById('selectedDaySelect');
 
-    for (let i = 0; i < 5; i++) {
-        let d = new Date(monday);
-        d.setDate(monday.getDate() + i);
-        let dayStr = String(d.getDate()).padStart(2, '0') + '.' + 
-                     String(d.getMonth() + 1).padStart(2, '0') + '.' + 
-                     d.getFullYear();
-        weekDays.push(dayStr);
+        for (let i = 0; i < 5; i++) {
+            let d = new Date(monday);
+            d.setDate(monday.getDate() + i);
+            let dayStr = String(d.getDate()).padStart(2, '0') + '.' + 
+                         String(d.getMonth() + 1).padStart(2, '0') + '.' + 
+                         d.getFullYear();
+            weekDays.push(dayStr);
 
-        document.getElementById(`th-date-${i}`).innerText = `${dayNames[i]} (${dayStr})`;
-        document.getElementById(`fiili-th-date-${i}`).innerText = `${dayNames[i]} (${dayStr})`;
+            document.getElementById(`th-date-${i}`).innerText = dayStr;
+            document.getElementById(`fiili-th-date-${i}`).innerText = dayStr;
 
-        if (selectElem && selectElem.options[i]) {
             selectElem.options[i].text = `${dayNames[i]} (${dayStr})`;
         }
+
+        let jsDay = today.getDay();
+        selectedDayIndex = (jsDay >= 1 && jsDay <= 5) ? jsDay - 1 : 0;
+        selectElem.value = selectedDayIndex;
     }
 
-    let jsDay = today.getDay();
-    selectedDayIndex = (jsDay >= 1 && jsDay <= 5) ? jsDay - 1 : 0;
-    if (selectElem) selectElem.value = selectedDayIndex;
-}
-
-function switchDay(newIndex) {
-    tempSaveCurrentHourlyInputs();
-    selectedDayIndex = parseInt(newIndex);
-    loadHourlyInputsForSelectedDay();
-    calculateHourly();
-}
-
-function tempSaveCurrentHourlyInputs() {
-    let existingHourlyAcc = JSON.parse(localStorage.getItem('depo_hourly_acc') || '[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]');
-    let existingHourlyTex = JSON.parse(localStorage.getItem('depo_hourly_tex') || '[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]');
-
-    let currentAccHourly = [], currentTexHourly = [];
-    document.querySelectorAll('.hourly-acc').forEach(inp => currentAccHourly.push(parseFloat(inp.value) || 0));
-    document.querySelectorAll('.hourly-tex').forEach(inp => currentTexHourly.push(parseFloat(inp.value) || 0));
-
-    existingHourlyAcc[selectedDayIndex] = currentAccHourly;
-    existingHourlyTex[selectedDayIndex] = currentTexHourly;
-
-    localStorage.setItem('depo_hourly_acc', JSON.stringify(existingHourlyAcc));
-    localStorage.setItem('depo_hourly_tex', JSON.stringify(existingHourlyTex));
-}
-
-function loadHourlyInputsForSelectedDay() {
-    let existingHourlyAcc = JSON.parse(localStorage.getItem('depo_hourly_acc') || '[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]');
-    let existingHourlyTex = JSON.parse(localStorage.getItem('depo_hourly_tex') || '[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]');
-
-    let accInputs = document.querySelectorAll('.hourly-acc');
-    let texInputs = document.querySelectorAll('.hourly-tex');
-
-    accInputs.forEach((inp, idx) => inp.value = existingHourlyAcc[selectedDayIndex][idx] || 0);
-    texInputs.forEach((inp, idx) => inp.value = existingHourlyTex[selectedDayIndex][idx] || 0);
-}
-
-function checkWeekReset() {
-    let savedWeekKey = localStorage.getItem('depo_current_week');
-    let currentWeekKey = weekDays[0];
-
-    // Yeni haftaya geçildiğinde yerel veriyi temizle
-    if (savedWeekKey && savedWeekKey !== currentWeekKey) {
-        localStorage.removeItem('depo_plan_acc');
-        localStorage.removeItem('depo_plan_tex');
-        localStorage.removeItem('depo_hourly_acc');
-        localStorage.removeItem('depo_hourly_tex');
+    function switchDay(newIndex) {
+        tempSaveCurrentHourlyInputs();
+        selectedDayIndex = parseInt(newIndex);
+        loadHourlyInputsForSelectedDay();
+        calculateHourly();
     }
 
-    localStorage.setItem('depo_current_week', currentWeekKey);
-}
+    function tempSaveCurrentHourlyInputs() {
+        let existingHourlyAcc = JSON.parse(localStorage.getItem('depo_hourly_acc') || '[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]');
+        let existingHourlyTex = JSON.parse(localStorage.getItem('depo_hourly_tex') || '[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]');
 
-function saveData() {
-    let data = { planAcc: [], planTex: [] };
-    document.querySelectorAll('.plan-acc').forEach(inp => data.planAcc.push(inp.value));
-    document.querySelectorAll('.plan-tex').forEach(inp => data.planTex.push(inp.value));
+        let currentAccHourly = [], currentTexHourly = [];
+        document.querySelectorAll('.hourly-acc').forEach(inp => currentAccHourly.push(parseFloat(inp.value) || 0));
+        document.querySelectorAll('.hourly-tex').forEach(inp => currentTexHourly.push(parseFloat(inp.value) || 0));
 
-    tempSaveCurrentHourlyInputs();
+        existingHourlyAcc[selectedDayIndex] = currentAccHourly;
+        existingHourlyTex[selectedDayIndex] = currentTexHourly;
 
-    localStorage.setItem('depo_plan_acc', JSON.stringify(data.planAcc));
-    localStorage.setItem('depo_plan_tex', JSON.stringify(data.planTex));
-
-    alert('Tüm veriler başarıyla kaydedildi!');
-}
-
-function loadData() {
-    checkWeekReset();
-
-    let savedPlanAcc = JSON.parse(localStorage.getItem('depo_plan_acc'));
-    let savedPlanTex = JSON.parse(localStorage.getItem('depo_plan_tex'));
-
-    if (savedPlanAcc) document.querySelectorAll('.plan-acc').forEach((inp, idx) => inp.value = savedPlanAcc[idx] || 0);
-    if (savedPlanTex) document.querySelectorAll('.plan-tex').forEach((inp, idx) => inp.value = savedPlanTex[idx] || 0);
-
-    loadHourlyInputsForSelectedDay();
-    calculateAll();
-}
-
-function calculateAll() {
-    let planAccInputs = document.querySelectorAll('.plan-acc');
-    let planTexInputs = document.querySelectorAll('.plan-tex');
-    let accTotal = 0, texTotal = 0, grandTotal = 0;
-
-    for(let i = 0; i < 5; i++) {
-        let valAcc = parseFloat(planAccInputs[i].value) || 0;
-        let valTex = parseFloat(planTexInputs[i].value) || 0;
-        accTotal += valAcc; texTotal += valTex;
-        let dSum = valAcc + valTex;
-        grandTotal += dSum;
-        document.getElementById(`planDay${i}`).innerText = dSum;
+        localStorage.setItem('depo_hourly_acc', JSON.stringify(existingHourlyAcc));
+        localStorage.setItem('depo_hourly_tex', JSON.stringify(existingHourlyTex));
     }
 
-    document.getElementById('planAccTotal').innerText = accTotal;
-    document.getElementById('planTexTotal').innerText = texTotal;
-    document.getElementById('planGrandTotal').innerText = grandTotal;
+    function loadHourlyInputsForSelectedDay() {
+        let existingHourlyAcc = JSON.parse(localStorage.getItem('depo_hourly_acc') || '[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]');
+        let existingHourlyTex = JSON.parse(localStorage.getItem('depo_hourly_tex') || '[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]');
 
-    calculateHourly();
-}
+        let accInputs = document.querySelectorAll('.hourly-acc');
+        let texInputs = document.querySelectorAll('.hourly-tex');
 
-function calculateHourly() {
-    let accInputs = document.querySelectorAll('.hourly-acc');
-    let texInputs = document.querySelectorAll('.hourly-tex');
-    let accSum = 0, texSum = 0, colSums = [0, 0, 0, 0];
-
-    accInputs.forEach((inp, idx) => {
-        let val = parseFloat(inp.value) || 0;
-        accSum += val; colSums[idx] += val;
-    });
-
-    texInputs.forEach((inp, idx) => {
-        let val = parseFloat(inp.value) || 0;
-        texSum += val; colSums[idx] += val;
-    });
-
-    document.getElementById('hourAccSum').innerText = accSum;
-    document.getElementById('hourTexSum').innerText = texSum;
-    for(let i = 0; i < 4; i++) document.getElementById(`colSum${i}`).innerText = colSums[i];
-
-    document.getElementById('hourGrandSum').innerText = accSum + texSum;
-    
-    tempSaveCurrentHourlyInputs();
-    updateFiiliTableFromStorage();
-}
-
-function updateFiiliTableFromStorage() {
-    let existingHourlyAcc = JSON.parse(localStorage.getItem('depo_hourly_acc') || '[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]');
-    let existingHourlyTex = JSON.parse(localStorage.getItem('depo_hourly_tex') || '[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]');
-
-    let totalAccWeek = 0, totalTexWeek = 0, grandFiili = 0;
-
-    for(let i = 0; i < 5; i++) {
-        let dayAcc = existingHourlyAcc[i].reduce((a,b)=>a+b, 0);
-        let dayTex = existingHourlyTex[i].reduce((a,b)=>a+b, 0);
-
-        document.getElementById(`fiiliAcc${i}`).innerText = dayAcc;
-        document.getElementById(`fiiliTex${i}`).innerText = dayTex;
-        let dayTot = dayAcc + dayTex;
-        document.getElementById(`fiiliDay${i}`).innerText = dayTot;
-
-        totalAccWeek += dayAcc; totalTexWeek += dayTex; grandFiili += dayTot;
+        accInputs.forEach((inp, idx) => inp.value = existingHourlyAcc[selectedDayIndex][idx] || 0);
+        texInputs.forEach((inp, idx) => inp.value = existingHourlyTex[selectedDayIndex][idx] || 0);
     }
 
-    document.getElementById('fiiliAccTotal').innerText = totalAccWeek;
-    document.getElementById('fiiliTexTotal').innerText = totalTexWeek;
-    document.getElementById('fiiliGrandTotal').innerText = grandFiili;
-}
+    function checkWeekReset() {
+        let savedWeekKey = localStorage.getItem('depo_current_week');
+        let currentWeekKey = weekDays[0];
 
-async function copyTableAsHTML() {
-    let selectContainer = document.querySelector('.day-select-container');
-    let selectElem = document.getElementById('selectedDaySelect');
-    
-    document.querySelectorAll('#captureArea input[type="number"]').forEach(inp => {
-        inp.setAttribute('value', inp.value);
-    });
+        if (savedWeekKey && savedWeekKey !== currentWeekKey) {
+            localStorage.removeItem('depo_plan_acc');
+            localStorage.removeItem('depo_plan_tex');
+            localStorage.removeItem('depo_hourly_acc');
+            localStorage.removeItem('depo_hourly_tex');
+        }
 
-    let selectedText = selectElem ? selectElem.options[selectElem.selectedIndex].text : '';
-    let originalContainerHTML = selectContainer ? selectContainer.innerHTML : '';
-    
-    if (selectContainer && selectedText) {
-        selectContainer.innerHTML = `<span style="font-weight: bold; color: #fff; background-color: #2c3e50; padding: 3px 8px; border-radius: 4px;">${selectedText}</span>`;
+        localStorage.setItem('depo_current_week', currentWeekKey);
     }
 
-    let captureElement = document.getElementById('captureArea');
+    function saveData() {
+        let data = { planAcc: [], planTex: [] };
+        document.querySelectorAll('.plan-acc').forEach(inp => data.planAcc.push(inp.value));
+        document.querySelectorAll('.plan-tex').forEach(inp => data.planTex.push(inp.value));
 
-    try {
-        let canvas = await html2canvas(captureElement, {
-            scale: 1,
-            useCORS: true,
-            backgroundColor: '#ffffff'
+        tempSaveCurrentHourlyInputs();
+
+        localStorage.setItem('depo_plan_acc', JSON.stringify(data.planAcc));
+        localStorage.setItem('depo_plan_tex', JSON.stringify(data.planTex));
+
+        alert('Tüm haftalık veriler ve saatlik detaylar başarıyla kaydedildi!');
+    }
+
+    function loadData() {
+        checkWeekReset();
+
+        let savedPlanAcc = JSON.parse(localStorage.getItem('depo_plan_acc'));
+        let savedPlanTex = JSON.parse(localStorage.getItem('depo_plan_tex'));
+
+        if (savedPlanAcc) document.querySelectorAll('.plan-acc').forEach((inp, idx) => inp.value = savedPlanAcc[idx] || 0);
+        if (savedPlanTex) document.querySelectorAll('.plan-tex').forEach((inp, idx) => inp.value = savedPlanTex[idx] || 0);
+
+        loadHourlyInputsForSelectedDay();
+        calculateAll();
+    }
+
+    function calculateAll() {
+        let planAccInputs = document.querySelectorAll('.plan-acc');
+        let planTexInputs = document.querySelectorAll('.plan-tex');
+        let accTotal = 0, texTotal = 0, grandTotal = 0;
+
+        for(let i = 0; i < 5; i++) {
+            let valAcc = parseFloat(planAccInputs[i].value) || 0;
+            let valTex = parseFloat(planTexInputs[i].value) || 0;
+            accTotal += valAcc; texTotal += valTex;
+            let dSum = valAcc + valTex;
+            grandTotal += dSum;
+            document.getElementById(`planDay${i}`).innerText = dSum;
+        }
+
+        document.getElementById('planAccTotal').innerText = accTotal;
+        document.getElementById('planTexTotal').innerText = texTotal;
+        document.getElementById('planGrandTotal').innerText = grandTotal;
+
+        calculateHourly();
+    }
+
+    function calculateHourly() {
+        let accInputs = document.querySelectorAll('.hourly-acc');
+        let texInputs = document.querySelectorAll('.hourly-tex');
+        let accSum = 0, texSum = 0, colSums = [0, 0, 0, 0];
+
+        accInputs.forEach((inp, idx) => {
+            let val = parseFloat(inp.value) || 0;
+            accSum += val; colSums[idx] += val;
         });
 
-        canvas.toBlob(async (blob) => {
-            if (!blob) {
-                alert('Resim oluşturulamadı.');
-                return;
-            }
+        texInputs.forEach((inp, idx) => {
+            let val = parseFloat(inp.value) || 0;
+            texSum += val; colSums[idx] += val;
+        });
 
-            try {
-                const item = new ClipboardItem({ 'image/png': blob });
-                await navigator.clipboard.write([item]);
-                alert('Tablo resim olarak panoya kopyalandı!');
-            } catch (err) {
-                console.error('Pano kopyalama hatası:', err);
-                alert('Görsel kopyalanamadı.');
-            }
-        }, 'image/png');
+        document.getElementById('hourAccSum').innerText = accSum;
+        document.getElementById('hourTexSum').innerText = texSum;
+        for(let i = 0; i < 4; i++) document.getElementById(`colSum${i}`).innerText = colSums[i];
 
-    } catch (error) {
-        console.error('Görsel oluşturma hatası:', error);
-        alert('Tablo resme dönüştürülürken bir hata oluştu.');
-    } finally {
-        if (selectContainer) {
-            selectContainer.innerHTML = originalContainerHTML;
-            let newSelectElem = document.getElementById('selectedDaySelect');
-            if (newSelectElem && typeof selectedDayIndex !== 'undefined') {
-                newSelectElem.value = selectedDayIndex;
+        document.getElementById('hourGrandSum').innerText = accSum + texSum;
+        
+        tempSaveCurrentHourlyInputs();
+        updateFiiliTableFromStorage();
+    }
+
+    function updateFiiliTableFromStorage() {
+        let existingHourlyAcc = JSON.parse(localStorage.getItem('depo_hourly_acc') || '[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]');
+        let existingHourlyTex = JSON.parse(localStorage.getItem('depo_hourly_tex') || '[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]');
+
+        let totalAccWeek = 0, totalTexWeek = 0, grandFiili = 0;
+
+        for(let i = 0; i < 5; i++) {
+            let dayAcc = existingHourlyAcc[i].reduce((a,b)=>a+b, 0);
+            let dayTex = existingHourlyTex[i].reduce((a,b)=>a+b, 0);
+
+            document.getElementById(`fiiliAcc${i}`).innerText = dayAcc;
+            document.getElementById(`fiiliTex${i}`).innerText = dayTex;
+            let dayTot = dayAcc + dayTex;
+            document.getElementById(`fiiliDay${i}`).innerText = dayTot;
+
+            totalAccWeek += dayAcc; totalTexWeek += dayTex; grandFiili += dayTot;
+        }
+
+        document.getElementById('fiiliAccTotal').innerText = totalAccWeek;
+        document.getElementById('fiiliTexTotal').innerText = totalTexWeek;
+        document.getElementById('fiiliGrandTotal').innerText = grandFiili;
+    }
+
+    async function copyTableAsHTML() {
+        let selectContainer = document.querySelector('.day-select-container');
+        let selectElem = document.getElementById('selectedDaySelect');
+        
+        document.querySelectorAll('#captureArea input[type="number"]').forEach(inp => {
+            inp.setAttribute('value', inp.value);
+        });
+
+        let selectedText = selectElem ? selectElem.options[selectElem.selectedIndex].text : '';
+        
+        let originalContainerHTML = selectContainer ? selectContainer.innerHTML : '';
+        if (selectContainer && selectedText) {
+            selectContainer.innerHTML = `<span style="font-weight: bold; color: #fff; background-color: #2c3e50; padding: 3px 8px; border-radius: 4px;">${selectedText}</span>`;
+        }
+
+        let captureElement = document.getElementById('captureArea');
+
+        try {
+            let canvas = await html2canvas(captureElement, {
+                scale: 1,
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            });
+
+            canvas.toBlob(async (blob) => {
+                if (!blob) {
+                    alert('Resim oluşturulamadı.');
+                    return;
+                }
+
+                try {
+                    const item = new ClipboardItem({ 'image/png': blob });
+                    await navigator.clipboard.write([item]);
+                    alert('Tablo kompakt PNG resmi olarak panoya kopyalandı!');
+                } catch (err) {
+                    console.error('Pano kopyalama hatası:', err);
+                    alert('Görsel kopyalanamadı.');
+                }
+            }, 'image/png');
+
+        } catch (error) {
+            console.error('Görsel oluşturma hatası:', error);
+            alert('Tablo resme dönüştürülürken bir hata oluştu.');
+        } finally {
+            if (selectContainer) {
+                selectContainer.innerHTML = originalContainerHTML;
+                let newSelectElem = document.getElementById('selectedDaySelect');
+                if (newSelectElem && typeof selectedDayIndex !== 'undefined') {
+                    newSelectElem.value = selectedDayIndex;
+                }
             }
         }
     }
-}
 
-window.onload = function() {
-    initDates();
-    loadData();
-};
+    window.onload = function() {
+        initDates();
+        loadData();
+    };
 </script>
 
 </body>
