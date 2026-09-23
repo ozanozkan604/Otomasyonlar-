@@ -8,7 +8,8 @@
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 font-sans p-6 md:p-12">
 
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-6xl mx-auto">
+        <!-- Üst Başlık Kartı -->
         <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 border border-slate-200 text-center">
             <h1 class="text-3xl font-black text-slate-900 tracking-tight flex items-center justify-center gap-3">
                 🚀 Sevkiyat & Operasyon Yönetim Paneli
@@ -18,9 +19,11 @@
             </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Araç Kartları Grid (4'lü Yapı) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             
-            <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-slate-200 p-6 flex flex-col justify-between">
+            <!-- 1. Araç: Mısır & Lübnan -->
+            <div class="bg-white rounded-xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 border border-slate-200 p-6 flex flex-col justify-between">
                 <div>
                     <div class="text-3xl mb-4">📦</div>
                     <h2 class="text-xl font-bold text-slate-900 mb-2">Mısır & Lübnan Etiket</h2>
@@ -28,13 +31,13 @@
                         Excel çeki listesinden Mısır ve Lübnan sevkiyatları için koli etiketleri oluşturun ve yazdırın.
                     </p>
                 </div>
-                <!-- DÜZELTİLEN LİNK BURADA -->
                 <a href="misir-lubnan.html" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg text-center transition-colors">
                     Araca Git &rarr;
                 </a>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-slate-200 p-6 flex flex-col justify-between">
+            <!-- 2. Araç: Fas Çeki Listesi -->
+            <div class="bg-white rounded-xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 border border-slate-200 p-6 flex flex-col justify-between">
                 <div>
                     <div class="text-3xl mb-4">🇲🇦</div>
                     <h2 class="text-xl font-bold text-slate-900 mb-2">Fas Çeki Listesi</h2>
@@ -42,13 +45,13 @@
                         Fas sevkiyatları için barkodlu, dinamik checklist tablosuna sahip koli etiketleri oluşturun.
                     </p>
                 </div>
-                <!-- DÜZELTİLEN LİNK BURADA -->
                 <a href="fas.html" class="block w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2.5 px-4 rounded-lg text-center transition-colors">
                     Araca Git &rarr;
                 </a>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-slate-200 p-6 flex flex-col justify-between">
+            <!-- 3. Araç: Sevk Süresi Hesaplama -->
+            <div class="bg-white rounded-xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 border border-slate-200 p-6 flex flex-col justify-between">
                 <div>
                     <div class="text-3xl mb-4">⏱️</div>
                     <h2 class="text-xl font-bold text-slate-900 mb-2">Sevk Süresi Hesaplama</h2>
@@ -56,28 +59,28 @@
                         Sipariş bazlı sevk sürelerini analiz edin, iş günü hesaplayın ve detaylı raporlar indirin.
                     </p>
                 </div>
-                <!-- DÜZELTİLEN LİNK BURADA -->
                 <a href="sevk-suresi.html" class="block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-lg text-center transition-colors">
                     Araca Git &rarr;
                 </a>
             </div>
 
-                        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-slate-200 p-6 flex flex-col justify-between">
+            <!-- 4. Araç: Mal Kabul Takip Çizelgesi -->
+            <div class="bg-white rounded-xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 border border-slate-200 p-6 flex flex-col justify-between">
                 <div>
-                    <div class="text-3xl mb-4">📦</div>
+                    <div class="text-3xl mb-4">📋</div>
                     <h2 class="text-xl font-bold text-slate-900 mb-2">Mal Kabul Takip Çizelgesi</h2>
                     <p class="text-slate-600 text-sm mb-6">
-                        Çeki Listesine Günlük Mal Kabul Verilerini Giriniz.
+                        Günlük ve saatlik mal kabul verilerini girin, planlanan ve fiili durumları anlık takip edin.
                     </p>
                 </div>
-                <!-- DÜZELTİLEN LİNK BURADA -->
-                <a href="gunluk_mal_kabul.html" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg text-center transition-colors">
+                <a href="gunluk_mal_kabul.html" class="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-lg text-center transition-colors">
                     Araca Git &rarr;
                 </a>
             </div>
 
         </div>
 
+        <!-- Imza / Alt Bilgi -->
         <div class="text-center mt-12 py-2">
             <span class="text-lg font-black italic tracking-widest text-slate-400 uppercase select-none">
                 Created by OZAN OZKAN using AI
