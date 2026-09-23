@@ -6,13 +6,11 @@
     <title>Sevkiyat ve Operasyon Yönetim Paneli</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Scrollbar Şekillendirme */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: rgba(241, 245, 249, 1); }
         ::-webkit-scrollbar-thumb { background: rgba(203, 213, 225, 1); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 1); }
 
-        /* Akordiyon Animasyonu */
         .accordion-content {
             display: grid;
             grid-template-rows: 0fr;
@@ -27,7 +25,7 @@
     <!-- SOL YAN MENÜ (SIDEBAR) -->
     <aside id="sidebar" class="w-72 bg-slate-900 text-slate-300 flex flex-col justify-between transition-all duration-300 z-30 shrink-0">
         <div>
-            <!-- Üst Logo / Başlık (Ana Sayfaya Dönüş) -->
+            <!-- Üst Logo / Başlık -->
             <div class="p-5 border-b border-slate-800">
                 <a href="about:blank" target="contentFrame" onclick="showWelcomePage()" class="flex items-center gap-3 group cursor-pointer">
                     <span class="text-2xl transform group-hover:scale-110 transition-transform">🚀</span>
@@ -38,71 +36,20 @@
                 </a>
             </div>
 
-            <!-- Navigasyon Menüsü -->
-            <nav class="p-4 space-y-3 overflow-y-auto max-h-[calc(100vh-140px)]">
-                
-                <!-- KATEGORİ 1: İHRACAT -->
-                <div class="space-y-1">
-                    <button onclick="toggleAccordion('ihracat-menu', 'ihracat-arrow')" class="w-full flex items-center justify-between p-2.5 rounded-lg text-xs font-semibold text-slate-400 uppercase tracking-wider hover:bg-slate-800/60 hover:text-white transition-all select-none">
-                        <div class="flex items-center gap-2">
-                            <span>🌍</span> İhracat
-                        </div>
-                        <span id="ihracat-arrow" class="text-[10px] transform transition-transform duration-300 -rotate-90">▼</span>
-                    </button>
-                    <div id="ihracat-menu" class="accordion-content" data-open="false">
-                        <div class="pl-3 space-y-1 pt-1">
-                            <a href="./misir-lubnan.html" target="contentFrame" onclick="setActiveLink(this)" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors">
-                                <span class="text-base">📦</span> Mısır & Lübnan
-                            </a>
-                            <a href="./fas.html" target="contentFrame" onclick="setActiveLink(this)" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors">
-                                <span class="text-base">📦</span> Fas
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- KATEGORİ 2: MAL KABUL -->
-                <div class="space-y-1">
-                    <button onclick="toggleAccordion('malkabul-menu', 'malkabul-arrow')" class="w-full flex items-center justify-between p-2.5 rounded-lg text-xs font-semibold text-slate-400 uppercase tracking-wider hover:bg-slate-800/60 hover:text-white transition-all select-none">
-                        <div class="flex items-center gap-2">
-                            <span>📥</span> Mal Kabul
-                        </div>
-                        <span id="malkabul-arrow" class="text-[10px] transform transition-transform duration-300 -rotate-90">▼</span>
-                    </button>
-                    <div id="malkabul-menu" class="accordion-content" data-open="false">
-                        <div class="pl-3 space-y-1 pt-1">
-                            <a href="./gunluk_mal_kabul.html" target="contentFrame" onclick="setActiveLink(this)" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors">
-                                <span class="text-base">📋</span> Günlük Mal Kabul Tablosu
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- KATEGORİ 3: SEVKİYAT -->
-                <div class="space-y-1">
-                    <button onclick="toggleAccordion('sevkiyat-menu', 'sevkiyat-arrow')" class="w-full flex items-center justify-between p-2.5 rounded-lg text-xs font-semibold text-slate-400 uppercase tracking-wider hover:bg-slate-800/60 hover:text-white transition-all select-none">
-                        <div class="flex items-center gap-2">
-                            <span>🚚</span> Sevkiyat
-                        </div>
-                        <span id="sevkiyat-arrow" class="text-[10px] transform transition-transform duration-300 -rotate-90">▼</span>
-                    </button>
-                    <div id="sevkiyat-menu" class="accordion-content" data-open="false">
-                        <div class="pl-3 space-y-1 pt-1">
-                            <a href="./sevk-suresi.html" target="contentFrame" onclick="setActiveLink(this)" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors">
-                                <span class="text-base">⏱️</span> Sevk Süresi Hesaplama
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
+            <!-- Dinamik Navigasyon Menüsü -->
+            <nav id="dynamicNav" class="p-4 space-y-3 overflow-y-auto max-h-[calc(100vh-180px)]">
+                <!-- JS Tarafından Otomatik Doldurulacak -->
             </nav>
         </div>
 
-        <!-- Alt Bilgi -->
-        <div class="p-4 border-t border-slate-800 text-center">
-            <span class="text-[10px] font-black italic tracking-widest text-slate-500 uppercase select-none block">
+        <!-- Alt Bilgi ve Ayarlar Butonu -->
+        <div class="p-4 border-t border-slate-800 flex items-center justify-between">
+            <span class="text-[9px] font-black italic tracking-widest text-slate-500 uppercase select-none">
                 Created by OZAN OZKAN using AI
             </span>
+            <button onclick="openAdminPanel()" title="Yönetici Paneli" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors">
+                ⚙️
+            </button>
         </div>
     </aside>
 
@@ -129,6 +76,59 @@
             </div>
         </div>
 
+        <!-- Yönetici Paneli Ekranı -->
+        <div id="adminScreen" class="hidden absolute inset-0 z-30 p-6 md:p-12 bg-slate-100 overflow-y-auto">
+            <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 p-8 space-y-8">
+                <div class="flex items-center justify-between border-b pb-4">
+                    <div>
+                        <h2 class="text-2xl font-black text-slate-900">⚙️ Menü Yönetici Paneli</h2>
+                        <p class="text-xs text-slate-500 mt-1">Sol menüye kod yazmadan yeni HTML sayfaları ekleyin veya silin.</p>
+                    </div>
+                    <button onclick="showWelcomePage()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-semibold text-slate-700">
+                        Kapat
+                    </button>
+                </div>
+
+                <!-- Yeni Sayfa Ekleme Formu -->
+                <form id="addMenuForm" onsubmit="handleAddMenu(event)" class="space-y-4 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                    <h3 class="font-bold text-slate-800 text-sm">➕ Yeni Menü Elemanı Ekle</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Kategori Seçin</label>
+                            <select id="menuCategory" required class="w-full p-2.5 text-sm rounded-lg border border-slate-300 bg-white">
+                                <option value="ihracat">🌍 İhracat</option>
+                                <option value="malkabul">📥 Mal Kabul</option>
+                                <option value="sevkiyat">🚚 Sevkiyat</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">İkon (Emoji)</label>
+                            <input type="text" id="menuIcon" placeholder="Örn: 📦, 📋, 📊" required class="w-full p-2 text-sm rounded-lg border border-slate-300">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Menü Başlığı</label>
+                            <input type="text" id="menuTitle" placeholder="Örn: İspanya Çeki Listesi" required class="w-full p-2 text-sm rounded-lg border border-slate-300">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Dosya Adı (.html)</label>
+                            <input type="text" id="menuUrl" placeholder="Örn: ispanya.html" required class="w-full p-2 text-sm rounded-lg border border-slate-300">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition-colors">
+                        Menüye Ekle
+                    </button>
+                </form>
+
+                <!-- Mevcut Menü Listesi ve Silme -->
+                <div>
+                    <h3 class="font-bold text-slate-800 text-sm mb-3">📋 Eklenmiş Sayfalar</h3>
+                    <div id="adminMenuList" class="space-y-2">
+                        <!-- JS Tarafından Doldurulacak -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- İçerik Gösterim Alanı (iframe) -->
         <div class="flex-1 w-full h-full relative">
             <iframe 
@@ -143,6 +143,72 @@
 
     <!-- JS Mantığı -->
     <script>
+        const ADMIN_PASSWORD = "1234"; // YÖNETİCİ ŞİFRESİ
+
+        // Varsayılan Menü Yapısı
+        const defaultMenuData = [
+            { category: "ihracat", title: "Mısır & Lübnan", url: "./misir-lubnan.html", icon: "📦" },
+            { category: "ihracat", title: "Fas", url: "./fas.html", icon: "📦" },
+            { category: "malkabul", title: "Günlük Mal Kabul Tablosu", url: "./gunluk_mal_kabul.html", icon: "📋" },
+            { category: "sevkiyat", title: "Sevk Süresi Hesaplama", url: "./sevk-suresi.html", icon: "⏱️" }
+        ];
+
+        // Yerel Hafızadan Veri Al veya Varsayılanı Yükle
+        function getMenuData() {
+            const storedData = localStorage.getItem("operasyon_menu_data");
+            return storedData ? JSON.parse(storedData) : defaultMenuData;
+        }
+
+        // Menüyü Ekrana Çizdir
+        function renderMenu() {
+            const menuData = getMenuData();
+            const navContainer = document.getElementById('dynamicNav');
+            
+            const categories = {
+                ihracat: { name: "İhracat", icon: "🌍", items: [] },
+                malkabul: { name: "Mal Kabul", icon: "📥", items: [] },
+                sevkiyat: { name: "Sevkiyat", icon: "🚚", items: [] }
+            };
+
+            menuData.forEach(item => {
+                if (categories[item.category]) {
+                    categories[item.category].items.push(item);
+                }
+            });
+
+            let html = '';
+            for (const key in categories) {
+                const cat = categories[key];
+                html += `
+                    <div class="space-y-1">
+                        <button onclick="toggleAccordion('${key}-menu', '${key}-arrow')" class="w-full flex items-center justify-between p-2.5 rounded-lg text-xs font-semibold text-slate-400 uppercase tracking-wider hover:bg-slate-800/60 hover:text-white transition-all select-none">
+                            <div class="flex items-center gap-2">
+                                <span>${cat.icon}</span> ${cat.name}
+                            </div>
+                            <span id="${key}-arrow" class="text-[10px] transform transition-transform duration-300 -rotate-90">▼</span>
+                        </button>
+                        <div id="${key}-menu" class="accordion-content" data-open="false">
+                            <div class="pl-3 space-y-1 pt-1">
+                `;
+
+                cat.items.forEach(item => {
+                    html += `
+                        <a href="${item.url}" target="contentFrame" onclick="setActiveLink(this)" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors">
+                            <span class="text-base">${item.icon}</span> ${item.title}
+                        </a>
+                    `;
+                });
+
+                html += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            navContainer.innerHTML = html;
+        }
+
         // Akordiyon Menü Aç/Kapa
         function toggleAccordion(menuId, arrowId) {
             const menu = document.getElementById(menuId);
@@ -160,9 +226,85 @@
             }
         }
 
-        // Tıklanan Linki Aktif Yap ve Hoş Geldin Ekranını Gizle
+        // Şifreli Yönetici Paneline Giriş
+        function openAdminPanel() {
+            const password = prompt("Lütfen Yönetici Şifresini Giriniz:");
+            if (password === ADMIN_PASSWORD) {
+                document.getElementById('adminScreen').classList.remove('hidden');
+                document.getElementById('welcomeScreen').style.display = 'none';
+                renderAdminMenuList();
+            } else if (password !== null) {
+                alert("Hatalı şifre!");
+            }
+        }
+
+        // Yönetici Paneli Menü Listesini Güncelle
+        function renderAdminMenuList() {
+            const menuData = getMenuData();
+            const adminList = document.getElementById('adminMenuList');
+            
+            if (menuData.length === 0) {
+                adminList.innerHTML = `<p class="text-xs text-slate-400 italic">Henüz eklenmiş sayfa yok.</p>`;
+                return;
+            }
+
+            let html = '';
+            menuData.forEach((item, index) => {
+                html += `
+                    <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+                        <div class="flex items-center gap-3">
+                            <span>${item.icon}</span>
+                            <div>
+                                <span class="font-bold text-slate-800">${item.title}</span>
+                                <span class="text-xs text-slate-400 block">${item.url} (${item.category})</span>
+                            </div>
+                        </div>
+                        <button onclick="deleteMenuItem(${index})" class="text-red-500 hover:text-red-700 font-bold text-xs bg-red-50 p-2 rounded-lg">
+                            Sil
+                        </button>
+                    </div>
+                `;
+            });
+            adminList.innerHTML = html;
+        }
+
+        // Yeni Sayfa Ekleme
+        function handleAddMenu(e) {
+            e.preventDefault();
+            const category = document.getElementById('menuCategory').value;
+            const icon = document.getElementById('menuIcon').value;
+            const title = document.getElementById('menuTitle').value;
+            let url = document.getElementById('menuUrl').value;
+
+            if (!url.startsWith('./') && !url.startsWith('http')) {
+                url = './' + url;
+            }
+
+            const menuData = getMenuData();
+            menuData.push({ category, title, url, icon });
+            localStorage.setItem("operasyon_menu_data", JSON.stringify(menuData));
+
+            document.getElementById('addMenuForm').reset();
+            renderMenu();
+            renderAdminMenuList();
+            alert("Yeni sayfa menüye başarıyla eklendi!");
+        }
+
+        // Sayfa Silme
+        function deleteMenuItem(index) {
+            if (confirm("Bu menü elemanını silmek istediğinize emin misiniz?")) {
+                const menuData = getMenuData();
+                menuData.splice(index, 1);
+                localStorage.setItem("operasyon_menu_data", JSON.stringify(menuData));
+                renderMenu();
+                renderAdminMenuList();
+            }
+        }
+
+        // Aktif Bağlantı Vurgusu
         function setActiveLink(element) {
             document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('adminScreen').classList.add('hidden');
 
             document.querySelectorAll('.nav-link').forEach(link => {
                 link.classList.remove('bg-blue-600', 'text-white');
@@ -172,22 +314,21 @@
             element.classList.remove('hover:bg-slate-800');
             element.classList.add('bg-blue-600', 'text-white');
 
-            if (window.innerWidth < 768) {
-                toggleSidebar();
-            }
+            if (window.innerWidth < 768) toggleSidebar();
         }
 
-        // Ana Sayfaya (Hoş Geldin Ekranına) Dönüş
+        // Hoş Geldiniz Ekranı
         function showWelcomePage() {
             document.getElementById('welcomeScreen').style.display = 'flex';
+            document.getElementById('adminScreen').classList.add('hidden');
+            document.getElementById('contentFrame').src = 'about:blank';
+
             document.querySelectorAll('.nav-link').forEach(link => {
                 link.classList.remove('bg-blue-600', 'text-white');
                 link.classList.add('hover:bg-slate-800', 'hover:text-white');
             });
 
-            if (window.innerWidth < 768) {
-                toggleSidebar();
-            }
+            if (window.innerWidth < 768) toggleSidebar();
         }
 
         // Mobil Sidebar Toggle
@@ -197,6 +338,11 @@
             sidebar.classList.toggle('absolute');
             sidebar.classList.toggle('h-full');
         }
+
+        // Sayfa İlk Açıldığında Menüyü Oluştur
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMenu();
+        });
     </script>
 
 </body>
