@@ -694,71 +694,56 @@
     }
 
     async function copyTableAsHTML() {
-        let selectElem = document.getElementById('selectedDaySelect');
-        let selectedText = selectElem.options[selectElem.selectedIndex].text;
+    let selectContainer = document.querySelector('.day-select-container');
+    let selectElem = document.getElementById('selectedDaySelect');
+    
+    // 1. Input değerlerini HTML 'value' özniteliğine eşitle (sayıların kaybolmaması için)
+    document.querySelectorAll('#captureArea input[type="number"]').forEach(inp => {
+        inp.setAttribute('value', inp.value);
+    });
 
-        // Geçici bir DOM kopya alanı oluştur
-        let clone = document.getElementById('captureArea').cloneNode(true);
+    // 2. Seçili gün metnini al
+    let selectedText = selectElem.options[selectElem.selectedIndex].text;
+    
+    // 3. Orijinal select alanını yedekle ve geçici görünüm oluştur
+    let originalContainerHTML = selectContainer.innerHTML;
+    selectContainer.innerHTML = `<span style="font-weight: bold; color: #fff; background-color: #2c3e50; padding: 2px 8px; border-radius: 4px;">${selectedText}</span>`;
 
-        // Kopyadaki açılır menüyü seçili gün etiketine çevir
-        let cloneSelectContainer = clone.querySelector('.day-select-container');
-        if (cloneSelectContainer) {
-            cloneSelectContainer.innerHTML = `<span style="font-weight: bold; color: #fff; background-color: #2c3e50; padding: 2px 8px; border-radius: 4px;">${selectedText}</span>`;
-        }
+    // 4. Tablonun alanını ve HTML içeriğini al
+    let element = document.getElementById('captureArea');
+    let htmlContent = element.outerHTML;
+    let textContent = element.innerText; // Düz metin yedeği
 
-        // Kopyadaki tüm input elemanlarını düz metne çevir (panoya aktarılırken değer kaybolmaması için)
-        let origInputs = document.querySelectorAll('#captureArea input[type="number"]');
-        let cloneInputs = clone.querySelectorAll('input[type="number"]');
+    try {
+        // Modern Clipboard API ile hem HTML hem düz metin olarak panoya yaz
+        const blobHtml = new Blob([htmlContent], { type: 'text/html' });
+        const blobText = new Blob([textContent], { type: 'text/plain' });
+        
+        const data = [new ClipboardItem({
+            'text/html': blobHtml,
+            'text/plain': blobText
+        })];
 
-        cloneInputs.forEach((inp, idx) => {
-            let val = origInputs[idx].value || "0";
-            let span = document.createElement('span');
-            span.textContent = val;
-            inp.parentNode.replaceChild(span, inp);
-        });
-
-        // HTML ve düz metin formatını hazırlar
-        let htmlContent = clone.innerHTML;
-        let textContent = clone.innerText;
-
-        try {
-            if (navigator.clipboard && window.ClipboardItem) {
-                let blobInput = new Blob([htmlContent], { type: 'text/html' });
-                let blobText = new Blob([textContent], { type: 'text/plain' });
-                let data = [new ClipboardItem({
-                    'text/html': blobInput,
-                    'text/plain': blobText
-                })];
-                await navigator.clipboard.write(data);
-                alert('Tablo (saatlik veriler dahil) tam biçiminde panoya kopyalandı!');
-            } else {
-                throw new Error("Clipboard API erişimi bulunamadı.");
-            }
-        } catch (err) {
-            // Eski kopyalama yöntemi yedeklemesi
-            let hiddenDiv = document.createElement('div');
-            hiddenDiv.style.position = 'absolute';
-            hiddenDiv.style.left = '-9999px';
-            hiddenDiv.innerHTML = htmlContent;
-            document.body.appendChild(hiddenDiv);
-
-            let range = document.createRange();
-            range.selectNodeContents(hiddenDiv);
-            let sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
-
-            try {
-                document.execCommand('copy');
-                alert('Tablo panoya kopyalandı!');
-            } catch (e) {
-                alert('Kopyalama başarısız oldu.');
-            } finally {
-                sel.removeAllRanges();
-                document.body.removeChild(hiddenDiv);
-            }
-        }
+        await navigator.clipboard.write(data);
+        alert('Tablo (biçimlendirmesi ve renkleriyle birlikte) panoya kopyalandı!');
+    } catch (err) {
+        console.error('Modern kopyalama hatası, eski yönteme geçiliyor:', err);
+        
+        // Tarayıcı desteklemiyorsa yedek yöntem (ExecCommand)
+        let range = document.createRange();
+        range.selectNode(element);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        document.execCommand('copy');
+        window.getSelection().removeAllRanges();
+        alert('Tablo kopyalandı!');
+    } finally {
+        // 5. Select alanını eski haline getir
+        selectContainer.innerHTML = originalContainerHTML;
+        let newSelectElem = document.getElementById('selectedDaySelect');
+        if (newSelectElem) newSelectElem.value = selectedDayIndex;
     }
+}
 
     window.onload = function() {
         initDates();
