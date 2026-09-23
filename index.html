@@ -5,16 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sevkiyat ve Operasyon Yönetim Paneli</title>
     <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-100 min-h-screen text-slate-800 font-sans p-6 md:p-12">
+    <style>
+        /* Sayfa Açılış Animasyonları (Girişte Süzülme) */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-    <div class="max-w-6xl mx-auto">
+        .animate-fade-in {
+            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Kartların Sırayla (Dalga Halinde) Gelmesi İçin Gecikmeler */
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+
+        /* Yavaş Nefes Alma / Bounce Animasyonu */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+
+        .animate-float {
+            animation: floatSlow 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 font-sans p-6 md:p-12 relative overflow-x-hidden">
+
+    <!-- Arka Plan Görsel Süslemeleri (Hafif Renk Halesi) -->
+    <div class="absolute -top-24 -left-24 w-96 h-96 bg-blue-200/40 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-indigo-200/40 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-6xl mx-auto relative z-10">
+        
         <!-- Üst Başlık Kartı -->
-        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 border border-slate-200 text-center">
-            <h1 class="text-3xl font-black text-slate-900 tracking-tight flex items-center justify-center gap-3">
-                🚀 Sevkiyat & Operasyon Yönetim Paneli
+        <div class="bg-white/80 backdrop-blur-md rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 p-8 mb-8 border border-slate-200/80 text-center animate-fade-in">
+            <h1 class="text-3xl md:text-4xl font-black text-slate-900 tracking-tight flex items-center justify-center gap-3">
+                <span class="inline-block animate-float">🚀</span> Sevkiyat & Operasyon Yönetim Paneli
             </h1>
-            <p class="text-slate-600 mt-2 text-base">
+            <p class="text-slate-600 mt-2 text-base max-w-xl mx-auto">
                 Lütfen kullanmak istediğiniz otomasyon aracını aşağıdan seçin.
             </p>
         </div>
@@ -23,69 +61,86 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             
             <!-- 1. Araç: Mısır & Lübnan -->
-            <div class="bg-white rounded-xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 border border-slate-200 p-6 flex flex-col justify-between">
+            <div class="group bg-white rounded-xl shadow-sm hover:shadow-xl hover:-translate-y-2 hover:scale-[1.02] transition-all duration-300 border border-slate-200 p-6 flex flex-col justify-between opacity-0 animate-fade-in delay-1 relative overflow-hidden">
+                <!-- Parlama / Işık Efekti -->
+                <div class="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none"></div>
+
                 <div>
-                    <div class="text-3xl mb-4">📦</div>
-                    <h2 class="text-xl font-bold text-slate-900 mb-2">Mısır & Lübnan Etiket</h2>
+                    <div class="text-4xl mb-4 transform group-hover:scale-125 group-hover:rotate-6 transition-transform duration-300 inline-block">📦</div>
+                    <h2 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">Mısır & Lübnan Etiket</h2>
                     <p class="text-slate-600 text-sm mb-6">
                         Excel çeki listesinden Mısır ve Lübnan sevkiyatları için koli etiketleri oluşturun ve yazdırın.
                     </p>
                 </div>
-                <a href="misir-lubnan.html" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg text-center transition-colors">
-                    Araca Git &rarr;
+                <a href="misir-lubnan.html" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg text-center transition-all duration-200 flex items-center justify-center gap-2 group/btn">
+                    <span>Araca Git</span>
+                    <span class="transform group-hover/btn:translate-x-1.5 transition-transform duration-200">&rarr;</span>
                 </a>
             </div>
 
             <!-- 2. Araç: Fas Çeki Listesi -->
-            <div class="bg-white rounded-xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 border border-slate-200 p-6 flex flex-col justify-between">
+            <div class="group bg-white rounded-xl shadow-sm hover:shadow-xl hover:-translate-y-2 hover:scale-[1.02] transition-all duration-300 border border-slate-200 p-6 flex flex-col justify-between opacity-0 animate-fade-in delay-2 relative overflow-hidden">
+                <!-- Parlama Efekti -->
+                <div class="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none"></div>
+
                 <div>
-                    <div class="text-3xl mb-4">🇲🇦</div>
-                    <h2 class="text-xl font-bold text-slate-900 mb-2">Fas Çeki Listesi</h2>
+                    <div class="text-4xl mb-4 transform group-hover:scale-125 group-hover:-rotate-6 transition-transform duration-300 inline-block">🇲🇦</div>
+                    <h2 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-slate-700 transition-colors">Fas Çeki Listesi</h2>
                     <p class="text-slate-600 text-sm mb-6">
                         Fas sevkiyatları için barkodlu, dinamik checklist tablosuna sahip koli etiketleri oluşturun.
                     </p>
                 </div>
-                <a href="fas.html" class="block w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2.5 px-4 rounded-lg text-center transition-colors">
-                    Araca Git &rarr;
+                <a href="fas.html" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2.5 px-4 rounded-lg text-center transition-all duration-200 flex items-center justify-center gap-2 group/btn">
+                    <span>Araca Git</span>
+                    <span class="transform group-hover/btn:translate-x-1.5 transition-transform duration-200">&rarr;</span>
                 </a>
             </div>
 
             <!-- 3. Araç: Sevk Süresi Hesaplama -->
-            <div class="bg-white rounded-xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 border border-slate-200 p-6 flex flex-col justify-between">
+            <div class="group bg-white rounded-xl shadow-sm hover:shadow-xl hover:-translate-y-2 hover:scale-[1.02] transition-all duration-300 border border-slate-200 p-6 flex flex-col justify-between opacity-0 animate-fade-in delay-3 relative overflow-hidden">
+                <!-- Parlama Efekti -->
+                <div class="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none"></div>
+
                 <div>
-                    <div class="text-3xl mb-4">⏱️</div>
-                    <h2 class="text-xl font-bold text-slate-900 mb-2">Sevk Süresi Hesaplama</h2>
+                    <div class="text-4xl mb-4 transform group-hover:scale-125 group-hover:rotate-6 transition-transform duration-300 inline-block">⏱️</div>
+                    <h2 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-emerald-600 transition-colors">Sevk Süresi Hesaplama</h2>
                     <p class="text-slate-600 text-sm mb-6">
                         Sipariş bazlı sevk sürelerini analiz edin, iş günü hesaplayın ve detaylı raporlar indirin.
                     </p>
                 </div>
-                <a href="sevk-suresi.html" class="block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-lg text-center transition-colors">
-                    Araca Git &rarr;
+                <a href="sevk-suresi.html" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-lg text-center transition-all duration-200 flex items-center justify-center gap-2 group/btn">
+                    <span>Araca Git</span>
+                    <span class="transform group-hover/btn:translate-x-1.5 transition-transform duration-200">&rarr;</span>
                 </a>
             </div>
 
             <!-- 4. Araç: Mal Kabul Takip Çizelgesi -->
-            <div class="bg-white rounded-xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 border border-slate-200 p-6 flex flex-col justify-between">
+            <div class="group bg-white rounded-xl shadow-sm hover:shadow-xl hover:-translate-y-2 hover:scale-[1.02] transition-all duration-300 border border-slate-200 p-6 flex flex-col justify-between opacity-0 animate-fade-in delay-4 relative overflow-hidden">
+                <!-- Parlama Efekti -->
+                <div class="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none"></div>
+
                 <div>
-                    <div class="text-3xl mb-4">📋</div>
-                    <h2 class="text-xl font-bold text-slate-900 mb-2">Mal Kabul Takip Çizelgesi</h2>
+                    <div class="text-4xl mb-4 transform group-hover:scale-125 group-hover:-rotate-6 transition-transform duration-300 inline-block">📋</div>
+                    <h2 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">Mal Kabul Takip Çizelgesi</h2>
                     <p class="text-slate-600 text-sm mb-6">
                         Günlük ve saatlik mal kabul verilerini girin, planlanan ve fiili durumları anlık takip edin.
                     </p>
                 </div>
-                <a href="gunluk_mal_kabul.html" class="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-lg text-center transition-colors">
-                    Araca Git &rarr;
+                <a href="gunluk_mal_kabul.html" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-lg text-center transition-all duration-200 flex items-center justify-center gap-2 group/btn">
+                    <span>Araca Git</span>
+                    <span class="transform group-hover/btn:translate-x-1.5 transition-transform duration-200">&rarr;</span>
                 </a>
             </div>
 
         </div>
 
-        <!-- Imza / Alt Bilgi -->
-        <div class="text-center mt-12 py-2">
-            <span class="text-lg font-black italic tracking-widest text-slate-400 uppercase select-none">
+        <!-- İmza / Alt Bilgi -->
+        <div class="text-center mt-12 py-2 animate-fade-in delay-4">
+            <span class="text-lg font-black italic tracking-widest text-slate-400 uppercase select-none hover:text-slate-600 transition-colors cursor-default">
                 Created by OZAN OZKAN using AI
             </span>
         </div>
+
     </div>
 
 </body>
