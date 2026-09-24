@@ -1,1 +1,898 @@
-.
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktif Organizasyon Şeması Oluşturucu</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* CSS Hierarchy Tree Styling */
+        .tf-tree {
+            font-size: 14px;
+            overflow: auto;
+            padding: 20px 0;
+        }
+        .tf-tree ul {
+            display: flex;
+            padding-top: 20px;
+            position: relative;
+            justify-content: center;
+            margin: 0 auto;
+            width: fit-content;
+        }
+        .tf-tree li {
+            float: left;
+            text-align: center;
+            list-style-type: none;
+            position: relative;
+            padding: 20px 8px 0 8px;
+            transition: all 0.3s;
+        }
+
+        /* Connecting Lines */
+        .tf-tree li::before, .tf-tree li::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 50%;
+            border-top: 2px solid #cbd5e1;
+            width: 50%;
+            height: 20px;
+        }
+        .tf-tree li::after {
+            right: auto;
+            left: 50%;
+            border-left: 2px solid #cbd5e1;
+        }
+        .tf-tree li:only-child::after, .tf-tree li:only-child::before {
+            display: none;
+        }
+        .tf-tree li:only-child {
+            padding-top: 0;
+        }
+        .tf-tree li:first-child::before, .tf-tree li:last-child::after {
+            border: none;
+        }
+        .tf-tree li:last-child::before {
+            border-right: 2px solid #cbd5e1;
+            border-radius: 0 8px 0 0;
+        }
+        .tf-tree li:first-child::after {
+            border-radius: 8px 0 0 0;
+        }
+        .tf-tree ul ul::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            border-left: 2px solid #cbd5e1;
+            width: 0;
+            height: 20px;
+        }
+
+        /* Card Highlight on Hover/Search */
+        .node-card {
+            transition: all 0.2s ease-in-out;
+        }
+        .node-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        .highlighted-card {
+            ring: 3px;
+            ring-color: #6366f1;
+            animation: pulse-border 1.5s infinite;
+        }
+        @keyframes pulse-border {
+            0%, 100% { border-color: #6366f1; }
+            50% { border-color: #a855f7; }
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- Top Navbar -->
+    <header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between z-10">
+        <div class="flex items-center space-x-3">
+            <div class="bg-indigo-600 text-white p-2 rounded-lg flex items-center justify-center shadow-md">
+                <i class="fa-solid fa-sitemap text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-slate-800 tracking-tight">Organizasyon Şeması Yönetimi</h1>
+                <p class="text-xs text-slate-500">Hiyerarşik personel yapınızı kolayca oluşturun ve yönetin</p>
+            </div>
+        </div>
+
+        <!-- Action Controls -->
+        <div class="flex items-center space-x-2">
+            <button onclick="loadSampleData()" class="px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition flex items-center space-x-1.5">
+                <i class="fa-solid fa-database"></i>
+                <span>Örnek Veri Yükle</span>
+            </button>
+            <button onclick="exportJSON()" class="px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition flex items-center space-x-1.5">
+                <i class="fa-solid fa-download"></i>
+                <span>İndir (JSON)</span>
+            </button>
+            <label class="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition cursor-pointer flex items-center space-x-1.5">
+                <i class="fa-solid fa-upload"></i>
+                <span>Yükle (JSON)</span>
+                <input type="file" id="importFile" accept=".json" onchange="importJSON(event)" class="hidden">
+            </label>
+            <button onclick="confirmClearAll()" class="px-3 py-1.5 text-xs font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition flex items-center space-x-1.5">
+                <i class="fa-solid fa-trash-can"></i>
+                <span>Temizle</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="flex flex-1 overflow-hidden">
+        
+        <!-- Left Sidebar: Controls & Employee Management Panel -->
+        <aside class="w-80 md:w-96 bg-white border-r border-slate-200 flex flex-col h-full shadow-sm z-10">
+            <!-- Tabs -->
+            <div class="flex border-b border-slate-200 bg-slate-50">
+                <button id="tabFormBtn" onclick="switchTab('form')" class="flex-1 py-3 px-4 text-xs font-semibold text-indigo-600 border-b-2 border-indigo-600 flex items-center justify-center space-x-2 bg-white">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>Kişi Ekle / Düzenle</span>
+                </button>
+                <button id="tabListBtn" onclick="switchTab('list')" class="flex-1 py-3 px-4 text-xs font-semibold text-slate-500 hover:text-slate-700 flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Personel Listesi (<span id="personCount">0</span>)</span>
+                </button>
+            </div>
+
+            <!-- Tab Content 1: Form -->
+            <div id="tabForm" class="p-5 overflow-y-auto flex-1 space-y-4">
+                <div class="flex justify-between items-center mb-1">
+                    <h2 id="formTitle" class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-plus text-indigo-600"></i> Yeni Kişi Ekle
+                    </h2>
+                    <button id="cancelEditBtn" onclick="resetForm()" class="hidden text-xs text-rose-600 hover:underline">
+                        Vazgeç
+                    </button>
+                </div>
+
+                <form id="personForm" onsubmit="handleFormSubmit(event)" class="space-y-3">
+                    <input type="hidden" id="editPersonId" value="">
+
+                    <!-- Ad Soyad -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Ad Soyad *</label>
+                        <input type="text" id="inputName" required placeholder="Örn: Ahmet Yılmaz" 
+                            class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                    </div>
+
+                    <!-- Pozisyon / Unvan -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Pozisyon / Unvan *</label>
+                        <input type="text" id="inputTitle" required placeholder="Örn: Genel Müdür / Yazılım Uzmanı" 
+                            class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                    </div>
+
+                    <!-- Departman -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Departman / Birim</label>
+                        <input type="text" id="inputDept" placeholder="Örn: İnsan Kaynakları, Bilgi İşlem" 
+                            class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                    </div>
+
+                    <!-- Bağlı Olduğu Kişi -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Bağlı Olduğu Yöneticisi</label>
+                        <select id="inputParent" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition bg-white">
+                            <option value="">-- En Üst Düzey (Bağlı Olduğu Kişi Yok) --</option>
+                        </select>
+                        <p class="text-[10px] text-slate-400 mt-1">Şirketin en üstündeki kişi için boş bırakın.</p>
+                    </div>
+
+                    <!-- Avatar / Fotoğraf URL -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Profil Fotoğrafı URL (Opsiyonel)</label>
+                        <input type="url" id="inputAvatar" placeholder="https://example.com/avatar.jpg" 
+                            class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                    </div>
+
+                    <!-- Kart Rengi Teması -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Kart Vurgu Rengi</label>
+                        <div class="flex items-center space-x-2">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="cardTheme" value="indigo" checked class="peer hidden">
+                                <span class="w-6 h-6 rounded-full bg-indigo-600 inline-block peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-indigo-600"></span>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="cardTheme" value="blue" class="peer hidden">
+                                <span class="w-6 h-6 rounded-full bg-blue-600 inline-block peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-blue-600"></span>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="cardTheme" value="emerald" class="peer hidden">
+                                <span class="w-6 h-6 rounded-full bg-emerald-600 inline-block peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-emerald-600"></span>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="cardTheme" value="amber" class="peer hidden">
+                                <span class="w-6 h-6 rounded-full bg-amber-500 inline-block peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-amber-500"></span>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="cardTheme" value="rose" class="peer hidden">
+                                <span class="w-6 h-6 rounded-full bg-rose-600 inline-block peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-rose-600"></span>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="cardTheme" value="purple" class="peer hidden">
+                                <span class="w-6 h-6 rounded-full bg-purple-600 inline-block peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-purple-600"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="submitBtn" class="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg shadow transition flex items-center justify-center space-x-2 text-sm">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>Personeli Kaydet</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Tab Content 2: Personel Listesi -->
+            <div id="tabList" class="p-4 overflow-y-auto flex-1 hidden space-y-2">
+                <div class="mb-3">
+                    <input type="text" id="listSearchInput" oninput="renderPersonList()" placeholder="Listede ara..." 
+                        class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-indigo-500">
+                </div>
+                <div id="personListContainer" class="space-y-2">
+                    <!-- Dynamic List items will be injected here -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Main Panel: Hierarchy Visualizer Canvas -->
+        <main class="flex-1 bg-slate-100 flex flex-col overflow-hidden relative">
+            
+            <!-- Hierarchy Control Toolbar -->
+            <div class="bg-white/80 backdrop-blur border-b border-slate-200 px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+                
+                <!-- Search Box for Chart -->
+                <div class="relative min-w-[240px]">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="searchChartInput" oninput="filterChart()" placeholder="Şemada kişi ara..." 
+                        class="w-full text-xs pl-8 pr-3 py-1.5 border border-slate-300 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                </div>
+
+                <!-- Zoom and Display Controls -->
+                <div class="flex items-center space-x-2">
+                    <button onclick="adjustZoom(0.1)" title="Yakınlaştır" class="p-1.5 text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-sm">
+                        <i class="fa-solid fa-plus text-xs w-4 h-4 flex items-center justify-center"></i>
+                    </button>
+                    <span id="zoomLevel" class="text-xs font-semibold text-slate-600 min-w-[40px] text-center">100%</span>
+                    <button onclick="adjustZoom(-0.1)" title="Uzaklaştır" class="p-1.5 text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-sm">
+                        <i class="fa-solid fa-minus text-xs w-4 h-4 flex items-center justify-center"></i>
+                    </button>
+                    <button onclick="resetZoom()" title="Sıfırla" class="p-1.5 text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-sm text-xs px-2">
+                        Sıfırla
+                    </button>
+                    <div class="h-4 border-r border-slate-300 mx-1"></div>
+                    <button onclick="expandAll()" title="Tümünü Genişlet" class="px-2.5 py-1.5 text-xs text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-sm flex items-center gap-1">
+                        <i class="fa-solid fa-angles-down text-[10px]"></i> Tümünü Aç
+                    </button>
+                    <button onclick="collapseAll()" title="Tümünü Daralt" class="px-2.5 py-1.5 text-xs text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-sm flex items-center gap-1">
+                        <i class="fa-solid fa-angles-up text-[10px]"></i> Daralt
+                    </button>
+                </div>
+            </div>
+
+            <!-- Canvas Workspace -->
+            <div id="canvasViewport" class="flex-1 overflow-auto p-10 flex justify-center items-start cursor-grab active:cursor-grabbing">
+                <div id="zoomWrapper" class="transition-transform duration-200 origin-top">
+                    <div id="treeContainer" class="tf-tree">
+                        <!-- Dynamic CSS Hierarchy Tree render here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State Container -->
+            <div id="emptyState" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-slate-50 p-6 text-center">
+                <div class="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mb-4 text-2xl">
+                    <i class="fa-solid fa-diagram-project"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800 mb-1">Henüz Personel Verisi Yok</h3>
+                <p class="text-sm text-slate-500 max-w-sm mb-6">Sol taraftaki paneli kullanarak organizasyonunuza yeni personel ekleyebilir veya örnek verileri yükleyebilirsiniz.</p>
+                <button onclick="loadSampleData()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-lg shadow transition flex items-center gap-2">
+                    <i class="fa-solid fa-database"></i> Örnek Veri İle Başla
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Custom Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 transform transition-all scale-100">
+            <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4 text-xl">
+                <i class="fa-solid fa-user-xmark"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-800 text-center mb-2">Personel Silinecek</h3>
+            <p id="deleteModalMessage" class="text-xs text-slate-500 text-center mb-6 leading-relaxed">
+                Bu personeli silmek istediğinize emin misiniz?
+            </p>
+            <div class="flex items-center space-x-3">
+                <button onclick="closeDeleteModal()" class="flex-1 py-2 px-4 border border-slate-300 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50 transition">
+                    İptal
+                </button>
+                <button id="confirmDeleteBtn" onclick="executeDelete()" class="flex-1 py-2 px-4 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-700 transition shadow">
+                    Evet, Sil
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State Management
+        let people = [];
+        let currentZoom = 1.0;
+        let collapsedNodes = new Set(); // Stores IDs of collapsed parent nodes
+        let personToDeleteId = null; // Store ID for custom delete modal
+
+        // Theme Definitions
+        const themeClasses = {
+            indigo: { border: 'border-indigo-500', bg: 'bg-indigo-50', text: 'text-indigo-700', badge: 'bg-indigo-100 text-indigo-800' },
+            blue: { border: 'border-blue-500', bg: 'bg-blue-50', text: 'text-blue-700', badge: 'bg-blue-100 text-blue-800' },
+            emerald: { border: 'border-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-700', badge: 'bg-emerald-100 text-emerald-800' },
+            amber: { border: 'border-amber-500', bg: 'bg-amber-50', text: 'text-amber-700', badge: 'bg-amber-100 text-amber-800' },
+            rose: { border: 'border-rose-500', bg: 'bg-rose-50', text: 'text-rose-700', badge: 'bg-rose-100 text-rose-800' },
+            purple: { border: 'border-purple-500', bg: 'bg-purple-50', text: 'text-purple-700', badge: 'bg-purple-100 text-purple-800' }
+        };
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage();
+            if (people.length === 0) {
+                loadSampleData();
+            } else {
+                updateUI();
+            }
+        });
+
+        // Save & Load Functions
+        function saveToLocalStorage() {
+            localStorage.setItem('org_chart_people', JSON.stringify(people));
+        }
+
+        function loadFromLocalStorage() {
+            const data = localStorage.getItem('org_chart_people');
+            if (data) {
+                try {
+                    people = JSON.parse(data);
+                } catch (e) {
+                    people = [];
+                }
+            }
+        }
+
+        // Default Sample Data Generator
+        function loadSampleData() {
+            people = [
+                {
+                    id: '1',
+                    name: 'Mehmet Yılmaz',
+                    title: 'İcra Kurulu Başkanı (CEO)',
+                    dept: 'Yönetim',
+                    parentId: null,
+                    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+                    theme: 'indigo'
+                },
+                {
+                    id: '2',
+                    name: 'Ayşe Kaya',
+                    title: 'Teknoloji Direktörü (CTO)',
+                    dept: 'Mühendislik',
+                    parentId: '1',
+                    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
+                    theme: 'blue'
+                },
+                {
+                    id: '3',
+                    name: 'Can Demir',
+                    title: 'Pazarlama Direktörü (CMO)',
+                    dept: 'Pazarlama',
+                    parentId: '1',
+                    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+                    theme: 'amber'
+                },
+                {
+                    id: '4',
+                    name: 'Selin Şahin',
+                    title: 'Kıdemli Yazılım Mimarı',
+                    dept: 'Yazılım',
+                    parentId: '2',
+                    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+                    theme: 'purple'
+                },
+                {
+                    id: '5',
+                    name: 'Emre Öztürk',
+                    title: 'UI/UX Tasarım Lideri',
+                    dept: 'Tasarım',
+                    parentId: '2',
+                    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+                    theme: 'rose'
+                },
+                {
+                    id: '6',
+                    name: 'Deniz Arslan',
+                    title: 'Dijital Pazarlama Uzmanı',
+                    dept: 'Pazarlama',
+                    parentId: '3',
+                    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+                    theme: 'emerald'
+                }
+            ];
+            collapsedNodes.clear();
+            saveToLocalStorage();
+            updateUI();
+        }
+
+        // Add or Update Person
+        function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const editId = document.getElementById('editPersonId').value;
+            const name = document.getElementById('inputName').value.trim();
+            const title = document.getElementById('inputTitle').value.trim();
+            const dept = document.getElementById('inputDept').value.trim();
+            const parentId = document.getElementById('inputParent').value || null;
+            const avatar = document.getElementById('inputAvatar').value.trim();
+            const theme = document.querySelector('input[name="cardTheme"]:checked').value;
+
+            // Cyclic relationship prevention
+            if (editId && parentId === editId) {
+                alert('Bir kişi kendisine bağlı olarak atanamaz!');
+                return;
+            }
+
+            if (editId && isDescendant(editId, parentId)) {
+                alert('Döngüsel hiyerarşi oluşturamazsınız! Bir yönetici, kendi alt çalışanına bağlı kılınamaz.');
+                return;
+            }
+
+            if (editId) {
+                // Update
+                const index = people.findIndex(p => p.id === editId);
+                if (index !== -1) {
+                    people[index] = { ...people[index], name, title, dept, parentId, avatar, theme };
+                }
+            } else {
+                // Insert New
+                const newPerson = {
+                    id: Date.now().toString(),
+                    name,
+                    title,
+                    dept,
+                    parentId,
+                    avatar,
+                    theme
+                };
+                people.push(newPerson);
+            }
+
+            saveToLocalStorage();
+            resetForm();
+            updateUI();
+        }
+
+        // Helper to check circular dependency
+        function isDescendant(parentId, childId) {
+            if (!childId) return false;
+            let current = people.find(p => p.id === childId);
+            while (current && current.parentId) {
+                if (current.parentId === parentId) return true;
+                current = people.find(p => p.id === current.parentId);
+            }
+            return false;
+        }
+
+        // Open Delete Modal
+        function deletePerson(id) {
+            const person = people.find(p => p.id === id);
+            if (!person) return;
+
+            personToDeleteId = id;
+            const children = people.filter(p => p.parentId === id);
+            
+            let message = `<strong>"${person.name}"</strong> isimli personeli silmek üzeresiniz.`;
+            if (children.length > 0) {
+                message += `<br><br><span class="text-amber-600 font-medium"><i class="fa-solid fa-circle-exclamation mr-1"></i> Not:</span> Bu kişiye bağlı <strong>${children.length} alt çalışan</strong> bulunmaktadır. Bu çalışanlar üst yöneticisiz (kök seviyeye) veya üst yöneticiye aktarılacaktır.`;
+            }
+
+            document.getElementById('deleteModalMessage').innerHTML = message;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            personToDeleteId = null;
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
+
+        // Execute Delete logic without native confirm()
+        function executeDelete() {
+            if (!personToDeleteId) return;
+
+            const id = personToDeleteId;
+            const person = people.find(p => p.id === id);
+
+            if (person) {
+                // Re-assign children to deleted node's parent
+                people.forEach(p => {
+                    if (p.parentId === id) {
+                        p.parentId = person.parentId || null;
+                    }
+                });
+
+                people = people.filter(p => p.id !== id);
+                collapsedNodes.delete(id);
+                saveToLocalStorage();
+                updateUI();
+            }
+
+            closeDeleteModal();
+        }
+
+        function resetForm() {
+            document.getElementById('personForm').reset();
+            document.getElementById('editPersonId').value = '';
+            document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-circle-plus text-indigo-600"></i> Yeni Kişi Ekle';
+            document.getElementById('submitBtn').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> <span>Personeli Kaydet</span>';
+            document.getElementById('cancelEditBtn').classList.add('hidden');
+        }
+
+        // Edit Person
+        function editPerson(id) {
+            const person = people.find(p => p.id === id);
+            if (!person) return;
+
+            document.getElementById('editPersonId').value = person.id;
+            document.getElementById('inputName').value = person.name || '';
+            document.getElementById('inputTitle').value = person.title || '';
+            document.getElementById('inputDept').value = person.dept || '';
+            document.getElementById('inputParent').value = person.parentId || '';
+            document.getElementById('inputAvatar').value = person.avatar || '';
+
+            const themeRadio = document.querySelector(`input[name="cardTheme"][value="${person.theme || 'indigo'}"]`);
+            if (themeRadio) themeRadio.checked = true;
+
+            document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-user-pen text-amber-600"></i> Kişi Bilgilerini Düzenle';
+            document.getElementById('submitBtn').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> <span>Güncelle</span>';
+            document.getElementById('cancelEditBtn').classList.remove('hidden');
+
+            switchTab('form');
+        }
+
+        // Render UI Pipeline
+        function updateUI() {
+            updateParentDropdown();
+            renderTree();
+            renderPersonList();
+            document.getElementById('personCount').innerText = people.length;
+
+            // Empty state check
+            const emptyState = document.getElementById('emptyState');
+            if (people.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+            }
+        }
+
+        // Update Select Dropdown for Parents
+        function updateParentDropdown() {
+            const select = document.getElementById('inputParent');
+            const editId = document.getElementById('editPersonId').value;
+            
+            select.innerHTML = '<option value="">-- En Üst Düzey (Bağlı Olduğu Kişi Yok) --</option>';
+
+            people.forEach(p => {
+                // Don't show current node in parent dropdown
+                if (p.id !== editId) {
+                    const option = document.createElement('option');
+                    option.value = p.id;
+                    option.textContent = `${p.name} (${p.title})`;
+                    select.appendChild(option);
+                }
+            });
+        }
+
+        // Build Tree Structure (Recursive)
+        function renderTree() {
+            const treeContainer = document.getElementById('treeContainer');
+            treeContainer.innerHTML = '';
+
+            if (people.length === 0) return;
+
+            // Root nodes are those with no parent or whose parent doesn't exist
+            const rootPeople = people.filter(p => !p.parentId || !people.some(parent => parent.id === p.parentId));
+
+            if (rootPeople.length === 0) return;
+
+            const ul = document.createElement('ul');
+            rootPeople.forEach(root => {
+                ul.appendChild(createTreeNodeHTML(root));
+            });
+            treeContainer.appendChild(ul);
+        }
+
+        function createTreeNodeHTML(person) {
+            const li = document.createElement('li');
+            const children = people.filter(p => p.parentId === person.id);
+            const hasChildren = children.length > 0;
+            const isCollapsed = collapsedNodes.has(person.id);
+
+            const theme = themeClasses[person.theme] || themeClasses.indigo;
+            const avatarSrc = person.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=random&color=fff`;
+
+            // Node Card HTML
+            let html = `
+                <div id="card-${person.id}" class="node-card inline-block bg-white border-t-4 ${theme.border} rounded-xl shadow-sm hover:shadow-md border-x border-b border-slate-200 p-3 min-w-[200px] max-w-[230px] text-center relative group">
+                    
+                    <!-- Actions Overlay on Hover -->
+                    <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1 bg-white/90 backdrop-blur rounded-md p-1 shadow-sm">
+                        <button onclick="editPerson('${person.id}')" title="Düzenle" class="text-amber-600 hover:text-amber-800 p-1 rounded hover:bg-amber-50 text-xs">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button onclick="deletePerson('${person.id}')" title="Sil" class="text-rose-600 hover:text-rose-800 p-1 rounded hover:bg-rose-50 text-xs">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+
+                    <!-- User Photo & Info -->
+                    <div class="flex flex-col items-center">
+                        <img src="${avatarSrc}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}'" alt="${person.name}" class="w-12 h-12 rounded-full object-cover ring-2 ring-slate-100 mb-2">
+                        <h4 class="text-sm font-bold text-slate-800 leading-snug">${person.name}</h4>
+                        <p class="text-xs font-medium text-slate-500 mt-0.5 leading-tight">${person.title}</p>
+                        
+                        ${person.dept ? `<span class="inline-block mt-2 px-2 py-0.5 text-[10px] font-semibold rounded-full ${theme.badge}">${person.dept}</span>` : ''}
+                    </div>
+
+                    <!-- Expand / Collapse Toggle Button -->
+                    ${hasChildren ? `
+                        <button onclick="toggleCollapse('${person.id}')" class="mt-2 text-[11px] font-medium text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-full transition flex items-center justify-center gap-1 mx-auto">
+                            <i class="fa-solid ${isCollapsed ? 'fa-plus' : 'fa-minus'} text-[9px]"></i>
+                            <span>${children.length} Alt Çalışan</span>
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+
+            li.innerHTML = html;
+
+            // Render children recursively if not collapsed
+            if (hasChildren && !isCollapsed) {
+                const ul = document.createElement('ul');
+                children.forEach(child => {
+                    ul.appendChild(createTreeNodeHTML(child));
+                });
+                li.appendChild(ul);
+            }
+
+            return li;
+        }
+
+        // Toggle Expand/Collapse Node
+        function toggleCollapse(personId) {
+            if (collapsedNodes.has(personId)) {
+                collapsedNodes.delete(personId);
+            } else {
+                collapsedNodes.add(personId);
+            }
+            renderTree();
+        }
+
+        function expandAll() {
+            collapsedNodes.clear();
+            renderTree();
+        }
+
+        function collapseAll() {
+            people.forEach(p => {
+                const hasChildren = people.some(child => child.parentId === p.id);
+                if (hasChildren) collapsedNodes.add(p.id);
+            });
+            renderTree();
+        }
+
+        // Render List View in Sidebar
+        function renderPersonList() {
+            const container = document.getElementById('personListContainer');
+            const query = (document.getElementById('listSearchInput').value || '').toLowerCase();
+            container.innerHTML = '';
+
+            const filtered = people.filter(p => 
+                p.name.toLowerCase().includes(query) || 
+                p.title.toLowerCase().includes(query) ||
+                (p.dept && p.dept.toLowerCase().includes(query))
+            );
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="text-center py-6 text-xs text-slate-400">Sonuç bulunamadı</div>`;
+                return;
+            }
+
+            filtered.forEach(p => {
+                const parent = people.find(item => item.id === p.parentId);
+                const theme = themeClasses[p.theme] || themeClasses.indigo;
+
+                const item = document.createElement('div');
+                item.className = 'bg-white border border-slate-200 rounded-lg p-3 hover:border-slate-300 transition flex items-center justify-between gap-2';
+                item.innerHTML = `
+                    <div class="flex items-center space-x-2.5 overflow-hidden">
+                        <img src="${p.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(p.name)}" class="w-8 h-8 rounded-full object-cover flex-shrink-0">
+                        <div class="truncate">
+                            <h5 class="text-xs font-bold text-slate-800 truncate">${p.name}</h5>
+                            <p class="text-[11px] text-slate-500 truncate">${p.title}</p>
+                            <p class="text-[10px] text-slate-400 truncate">Üstü: ${parent ? parent.name : 'Yok (Köknode)'}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-1 flex-shrink-0">
+                        <button onclick="editPerson('${p.id}')" class="p-1.5 text-slate-400 hover:text-amber-600 rounded">
+                            <i class="fa-solid fa-pen text-xs"></i>
+                        </button>
+                        <button onclick="deletePerson('${p.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded">
+                            <i class="fa-solid fa-trash text-xs"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Search in Visual Chart
+        function filterChart() {
+            const query = document.getElementById('searchChartInput').value.trim().toLowerCase();
+            
+            // Remove previous highlights
+            document.querySelectorAll('.node-card').forEach(card => {
+                card.classList.remove('ring-4', 'ring-indigo-500', 'bg-indigo-50');
+            });
+
+            if (!query) return;
+
+            people.forEach(p => {
+                if (p.name.toLowerCase().includes(query) || p.title.toLowerCase().includes(query)) {
+                    // Make sure node is expanded
+                    let parentId = p.parentId;
+                    while (parentId) {
+                        collapsedNodes.delete(parentId);
+                        const parent = people.find(item => item.id === parentId);
+                        parentId = parent ? parent.parentId : null;
+                    }
+                }
+            });
+
+            renderTree();
+
+            // Apply highlight ring
+            people.forEach(p => {
+                if (p.name.toLowerCase().includes(query) || p.title.toLowerCase().includes(query)) {
+                    const card = document.getElementById(`card-${p.id}`);
+                    if (card) {
+                        card.classList.add('ring-4', 'ring-indigo-500', 'bg-indigo-50');
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                    }
+                }
+            });
+        }
+
+        // Switch Sidebar Tabs
+        function switchTab(tab) {
+            const formTab = document.getElementById('tabForm');
+            const listTab = document.getElementById('tabList');
+            const formBtn = document.getElementById('tabFormBtn');
+            const listBtn = document.getElementById('tabListBtn');
+
+            if (tab === 'form') {
+                formTab.classList.remove('hidden');
+                listTab.classList.add('hidden');
+                formBtn.className = 'flex-1 py-3 px-4 text-xs font-semibold text-indigo-600 border-b-2 border-indigo-600 flex items-center justify-center space-x-2 bg-white';
+                listBtn.className = 'flex-1 py-3 px-4 text-xs font-semibold text-slate-500 hover:text-slate-700 flex items-center justify-center space-x-2';
+            } else {
+                formTab.classList.add('hidden');
+                listTab.classList.remove('hidden');
+                listBtn.className = 'flex-1 py-3 px-4 text-xs font-semibold text-indigo-600 border-b-2 border-indigo-600 flex items-center justify-center space-x-2 bg-white';
+                formBtn.className = 'flex-1 py-3 px-4 text-xs font-semibold text-slate-500 hover:text-slate-700 flex items-center justify-center space-x-2';
+            }
+        }
+
+        // Zoom Functions
+        function adjustZoom(delta) {
+            currentZoom = Math.min(Math.max(0.4, currentZoom + delta), 1.8);
+            document.getElementById('zoomWrapper').style.transform = `scale(${currentZoom})`;
+            document.getElementById('zoomLevel').innerText = `${Math.round(currentZoom * 100)}%`;
+        }
+
+        function resetZoom() {
+            currentZoom = 1.0;
+            document.getElementById('zoomWrapper').style.transform = `scale(1)`;
+            document.getElementById('zoomLevel').innerText = `100%`;
+        }
+
+        // Export Data to JSON File
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(people, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "organizasyon_semasi.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        // Import Data from JSON File
+        function importJSON(event) {
+            const fileReader = new FileReader();
+            fileReader.onload = function (e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (Array.isArray(importedData)) {
+                        people = importedData;
+                        saveToLocalStorage();
+                        updateUI();
+                        alert('Organizasyon verileri başarıyla yüklendi!');
+                    } else {
+                        alert('Geçersiz dosya biçimi.');
+                    }
+                } catch (err) {
+                    alert('JSON dosyası okunurken bir hata oluştu.');
+                }
+            };
+            if (event.target.files[0]) {
+                fileReader.readAsText(event.target.files[0]);
+            }
+        }
+
+        // Clear All Data
+        function confirmClearAll() {
+            personToDeleteId = 'ALL';
+            document.getElementById('deleteModalMessage').innerHTML = '<strong>Tüm hiyerarşi verilerini</strong> silmek istediğinize emin misiniz? Bu işlem geri alınamaz.';
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        // Override executeDelete to also handle "Clear All"
+        const originalExecuteDelete = executeDelete;
+        executeDelete = function() {
+            if (personToDeleteId === 'ALL') {
+                people = [];
+                collapsedNodes.clear();
+                saveToLocalStorage();
+                resetForm();
+                updateUI();
+                closeDeleteModal();
+            } else {
+                originalExecuteDelete();
+            }
+        };
+    </script>
+</body>
+</html>
